@@ -1,0 +1,8 @@
+# Python 临时脚本
+_*.py
+__pycache__/
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db

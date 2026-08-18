@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>七夕心愿礼 · 橘朵礼物挑选页</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-decor" aria-hidden="true">
+    <span class="blob blob-a"></span>
+    <span class="blob blob-b"></span>
+    <span class="blob blob-c"></span>
+  </div>
+
+  <header class="hero">
+    <p class="hero-kicker"><span class="heart">♡</span> 七夕限定 · 心愿礼物清单 <span class="heart">♡</span></p>
+    <h1 class="hero-title">
+      我们逛了逛多次，<br class="mobile-only">“想买”说了好多遍……<br>
+      <span class="hero-accent">现在不用看价格啦！</span>
+    </h1>
+    <p class="hero-sub">点亮 <b>♡</b> 挑出最想要的 <b>3 件</b>，选好型号就好啦～</p>
+  </header>
+
+  <main class="catalog">
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input id="searchInput" type="search" placeholder="搜索想要的心愿礼物…" autocomplete="off">
+      </div>
+      <div class="chips" id="categoryChips"></div>
+    </div>
+    <div class="grid" id="productGrid"></div>
+    <div class="empty" id="emptyTip" hidden>没有找到对应的宝贝，换个关键词试试～</div>
+  </main>
+
+  <footer class="footer">
+    <p>挑满心愿礼物，点「确认心愿」就好啦～</p>
+    <p class="footer-sub">JUDYDOLL 橘朵 · 七夕心愿礼</p>
+  </footer>
+
+  <!-- 商品详情 / 选择型号 -->
+  <div class="modal-mask" id="modalMask" hidden>
+    <div class="modal modal-detail" role="dialog" aria-modal="true" aria-labelledby="modalName">
+      <button class="modal-close" id="modalClose" aria-label="关闭">✕</button>
+      <div class="modal-image-wrap"><img id="modalImage" class="modal-image" alt=""></div>
+      <div class="modal-body">
+        <h2 id="modalName"></h2>
+        <div class="modal-price">￥<span id="modalPrice">0.00</span>元</div>
+        <label class="field-label" for="modelSelect">选择型号</label>
+        <select id="modelSelect" class="model-select"></select>
+        <button class="btn-primary" id="addBtn">加入心愿单</button>
+        <p class="modal-tip">已选 <span id="modalCount">0</span> / 3 件</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提交确认 -->
+  <div class="modal-mask" id="confirmMask" hidden>
+    <div class="modal modal-confirm" role="dialog" aria-modal="true">
+      <button class="modal-close" id="confirmClose" aria-label="关闭">✕</button>
+      <h2 class="confirm-title">我的心愿清单</h2>
+      <p class="confirm-sub">为她挑好的 <b id="confirmCount">0</b> 件礼物：</p>
+      <ul class="confirm-list" id="confirmList"></ul>
+      <div class="confirm-actions">
+        <button class="btn-primary btn-confirm-wish" id="sendBtn">确认心愿</button>
+      </div>
+      <p class="confirm-note">点「确认心愿」，清单就送到我这儿啦～</p>
+    </div>
+  </div>
+
+  <!-- 底部心愿栏 -->
+  <div class="wish-bar" id="wishBar" hidden>
+    <div class="wish-bar-inner">
+      <div class="wish-count"><b id="wishCount">0</b><span class="wish-total"> / 3</span></div>
+      <div class="wish-tags" id="wishTags"></div>
+      <button class="btn-submit" id="submitBtn" disabled>提交心愿清单</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
