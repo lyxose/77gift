@@ -34,8 +34,7 @@
     <!-- 第二屏：答错/天数 -->
     <div class="screen screen-days" id="screenDays">
       <h1 class="intro-q">答错了！</h1>
-      <p class="intro-line">明明是在一起的第 <span class="blank">___</span> 天</p>
-      <p class="intro-line">再给你一次输入机会</p>
+      <p class="intro-line">明明是在一起的第 天</p>
       <div class="days-wrap">
         <div class="day-slots" id="daySlots">
           <div class="day-slot" data-idx="0"></div>
@@ -45,7 +44,6 @@
         <div class="days-numpad" id="daysNumpad"></div>
       </div>
       <button class="intro-btn intro-btn-go" id="daysConfirm" disabled>确认</button>
-      <p class="intro-hint" id="daysHint">只能输入 951 哦，数字键会自己长对位置～</p>
     </div>
 
     <!-- 第三屏：奖励 -->
@@ -114,12 +112,11 @@
       <div class="modal modal-confirm" role="dialog" aria-modal="true">
         <button class="modal-close" id="confirmClose" aria-label="关闭">✕</button>
         <h2 class="confirm-title">我的心愿清单</h2>
-        <p class="confirm-sub">为她挑好的 <b id="confirmCount">0</b> 件礼物：</p>
+        <p class="confirm-sub">挑好的 <b id="confirmCount">0</b> 件礼物：</p>
         <ul class="confirm-list" id="confirmList"></ul>
         <div class="confirm-actions">
           <button class="btn-primary btn-confirm-wish" id="sendBtn">确认心愿</button>
         </div>
-        <p class="confirm-note">点「确认心愿」，清单就送到我这儿啦～</p>
       </div>
     </div>
 

@@ -305,10 +305,11 @@ body {
   border-radius: 24px;
   max-width: 420px;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
   box-shadow: 0 24px 60px rgba(74, 43, 51, .25);
   animation: popIn .25s ease;
-  overflow: hidden;
 }
 @keyframes popIn {
   from { opacity: 0; transform: translateY(16px) scale(.97); }
@@ -541,29 +542,32 @@ body {
   .modal-body { padding: 18px 20px 22px; }
 }
 
-/* ============ 小猪装饰（PNG） ============ */
+/* ============ 小猪装饰（PNG，透明背景） ============ */
 .pig-decor { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.pig-decor img { position: absolute; user-select: none; }
+.pig-decor img { position: absolute; user-select: none; image-rendering: auto; }
 .pig {
-  width: 120px;
-  opacity: .75;
-  filter: drop-shadow(0 8px 14px rgba(217, 79, 111, .12));
+  width: 118px;
+  opacity: .8;
+  filter: drop-shadow(0 6px 12px rgba(217, 79, 111, .1));
 }
-.pig-1 { top: 7%; left: 3%; transform: rotate(-10deg); }
-.pig-2 { bottom: 10%; right: 3%; width: 110px; transform: rotate(8deg); opacity: .7; }
-.pig-3 { top: 44%; right: 7%; width: 90px; transform: rotate(-5deg); opacity: .6; }
-.pig-ear { width: 52px; opacity: .7; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .1)); }
-.pig-ear-1 { top: 20%; right: 12%; transform: rotate(18deg); }
-.pig-ear-2 { bottom: 24%; left: 9%; transform: rotate(-24deg); width: 42px; opacity: .6; }
-.pig-tail { width: 50px; opacity: .65; bottom: 28%; left: 16%; transform: rotate(42deg); filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .1)); }
-.pig-foot { width: 42px; opacity: .65; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .1)); }
-.pig-foot-1 { top: 58%; left: 5%; transform: rotate(-15deg); }
-.pig-foot-2 { top: 16%; right: 22%; transform: rotate(22deg); width: 34px; opacity: .55; }
+/* 整只小猪：左下、右下各一只，营造角落点缀 */
+.pig-1 { bottom: 6%; left: 2.5%; transform: rotate(-8deg); }
+.pig-2 { bottom: 9%; right: 2.5%; width: 104px; transform: rotate(7deg); opacity: .75; }
+/* 耳朵：只放在左右上角 */
+.pig-ear { width: 56px; top: 4%; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
+.pig-ear-1 { left: 4%; transform: rotate(-22deg); }
+.pig-ear-2 { right: 4%; transform: rotate(22deg) scaleX(-1); }
+/* 尾巴：右侧中部 */
+.pig-tail { width: 46px; top: 40%; right: 3%; transform: rotate(35deg); opacity: .7; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
+/* 猪蹄：左下、右上点缀 */
+.pig-foot { width: 40px; opacity: .7; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
+.pig-foot-1 { bottom: 30%; left: 6%; transform: rotate(-12deg); }
+.pig-foot-2 { top: 26%; right: 10%; transform: rotate(20deg); width: 32px; opacity: .6; }
 @media (max-width: 720px) {
   .pig-decor img { opacity: .45; }
-  .pig-3, .pig-tail, .pig-foot-2 { display: none; }
-  .pig-1 { width: 90px; }
-  .pig-2 { width: 86px; }
+  .pig-2, .pig-tail, .pig-foot-2 { display: none; }
+  .pig-1 { width: 92px; }
+  .pig-ear { width: 46px; }
 }
 
 /* ============ 前置互动舞台 ============ */
@@ -634,25 +638,29 @@ body {
   border-color: var(--rose-deep);
   transform: scale(1.05);
 }
-.day-slot.wrong {
-  animation: shake .35s ease;
-  border-color: #ff7b7b;
-  background: #fff0f0;
-}
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
-}
 .days-numpad { width: 100%; }
 .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .numpad-key {
   font-size: 22px; font-weight: 700; color: var(--rose-deep);
   background: #fff; border: 1.5px solid var(--rose); border-radius: 14px;
-  padding: 14px 0; cursor: pointer; transition: background .12s, transform .1s;
+  padding: 14px 0; cursor: pointer;
+  transition: background .12s, transform .15s ease;
 }
 .numpad-key:hover { background: var(--rose-soft); }
 .numpad-key:active { transform: scale(.96); }
+/* 错误按键时：正确的键滑到点击处并“被按下” */
+.numpad-key.sliding { z-index: 5; box-shadow: 0 8px 20px rgba(217, 79, 111, .3); }
+.numpad-key.pressed {
+  background: var(--rose);
+  color: #fff;
+  transform: scale(1.08);
+  animation: keyPop .22s ease;
+}
+@keyframes keyPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1.08); }
+}
 .numpad-key:disabled { opacity: .4; cursor: not-allowed; }
 
 /* 全屏时铺满 */

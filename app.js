@@ -73,11 +73,11 @@ function initDays() {
     });
     const ok = digits.join('') === TARGET_DAYS;
     confirmBtn.disabled = !ok;
-    if (ok && hint) hint.textContent = '答对啦！点「确认」继续～';
   }
 
   // 键盘
   const numpad = $('#daysNumpad');
+  let keyMap = {};
   if (numpad) {
     const pad = document.createElement('div');
     pad.className = 'numpad';
@@ -86,31 +86,55 @@ function initDays() {
       k.className = 'numpad-key';
       k.type = 'button';
       k.textContent = d;
-      on(k, 'click', () => tryDigit(d));
+      on(k, 'click', (e) => tryDigit(d, e));
       pad.appendChild(k);
+      keyMap[d] = k;
     });
     numpad.appendChild(pad);
   }
 
-  function tryDigit(d) {
+  function fillAt(idx) {
+    digits[idx] = PAIRS[idx][0];
+    refresh();
+  }
+
+  function tryDigit(d, evt) {
     const idx = digits.findIndex(x => x === '');
     if (idx === -1) return;
     if (PAIRS[idx][0] === d) {
-      digits[idx] = d;
-      refresh();
+      fillAt(idx);
     } else {
-      const slot = slots[idx];
-      slot.classList.remove('wrong');
-      void slot.offsetWidth; // 重启动画
-      slot.classList.add('wrong');
+      // 点错：让正确的按钮滑到点击处并"被点击"，再填入正确答案
+      const correct = keyMap[PAIRS[idx][0]];
+      if (!correct) { fillAt(idx); return; }
+      const targetX = evt && evt.clientX ? evt.clientX : null;
+      const targetY = evt && evt.clientY ? evt.clientY : null;
+      if (targetX != null) {
+        const r = correct.getBoundingClientRect();
+        const dx = targetX - (r.left + r.width / 2);
+        const dy = targetY - (r.top + r.height / 2);
+        correct.style.transition = 'transform .35s cubic-bezier(.34,1.56,.64,1)';
+        correct.style.transform = `translate(${dx}px, ${dy}px) scale(1.15)`;
+        correct.classList.add('sliding');
+        setTimeout(() => {
+          correct.style.transform = '';
+          correct.classList.remove('sliding');
+          correct.classList.add('pressed');
+          fillAt(idx);
+          setTimeout(() => correct.classList.remove('pressed'), 220);
+        }, 360);
+      } else {
+        correct.classList.add('pressed');
+        fillAt(idx);
+        setTimeout(() => correct.classList.remove('pressed'), 220);
+      }
     }
   }
-  window.__tryDayDigit = tryDigit;
 
   // 物理键盘支持
   on(document, 'keydown', (e) => {
     if ($('#introStage').classList.contains('done')) return;
-    if (/^[0-9]$/.test(e.key)) tryDigit(e.key);
+    if (/^[0-9]$/.test(e.key)) tryDigit(e.key, null);
   });
 
   if (confirmBtn) on(confirmBtn, 'click', () => { requestFS(); showScreen($('#screenReward')); });
@@ -203,6 +227,7 @@ function esc(s) {
 }
 
 function imgSrc(p) {
+  if (p.image) return p.image;
   if (p.cover) return p.cover;
   if (p.images && p.images.length) return p.images[0];
   return 'images/placeholder.png';
