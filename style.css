@@ -539,3 +539,71 @@ body {
   .btn-submit { order: 2; }
   .modal-body { padding: 18px 20px 22px; }
 }
+
+/* ============ 小猪装饰 ============ */
+.pig-decor { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.pig { position: absolute; width: 110px; height: 92px; opacity: .5; }
+.pig-1 { top: 8%; left: 4%; transform: rotate(-12deg); }
+.pig-2 { bottom: 12%; right: 5%; width: 92px; height: 76px; transform: rotate(10deg); opacity: .42; }
+.pig-3 { top: 46%; right: 8%; width: 70px; height: 58px; transform: rotate(-6deg); opacity: .35; }
+.pig-ear { position: absolute; width: 46px; height: 46px; opacity: .55; }
+.pig-ear-1 { top: 22%; right: 14%; transform: rotate(18deg); }
+.pig-ear-2 { bottom: 26%; left: 10%; transform: rotate(-22deg); width: 38px; height: 38px; opacity: .45; }
+.pig-tail { position: absolute; width: 44px; height: 44px; opacity: .5; bottom: 30%; left: 18%; transform: rotate(40deg); }
+.pig-foot { position: absolute; width: 36px; height: 36px; opacity: .5; top: 60%; left: 6%; }
+@media (max-width: 720px) {
+  .pig, .pig-ear, .pig-tail, .pig-foot { opacity: .28; }
+  .pig-3, .pig-tail-1, .pig-foot-1 { display: none; }
+}
+
+/* ============ 前置互动舞台 ============ */
+.stage { min-height: 100vh; }
+.gift-stage { position: relative; z-index: 1; }
+.intro-stage {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; text-align: center;
+}
+.intro-stage.done { display: none; }
+
+.screen { display: none; flex-direction: column; align-items: center; gap: 26px; max-width: 560px; width: 100%; }
+.screen.active { display: flex; animation: fadeUp .5s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.intro-q { font-size: 32px; line-height: 1.4; color: var(--rose-deep); font-weight: 800; }
+.intro-line { font-size: 20px; color: var(--ink); }
+.blank { display: inline-block; min-width: 54px; border-bottom: 3px dashed var(--rose); color: var(--rose-deep); font-weight: 800; }
+
+.intro-options { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; position: relative; }
+
+.intro-btn {
+  font-size: 19px; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, var(--rose), var(--rose-deep));
+  border: none; border-radius: 999px; padding: 16px 34px; cursor: pointer;
+  box-shadow: var(--shadow); transition: transform .15s ease, box-shadow .15s ease;
+}
+.intro-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(217, 79, 111, .25); }
+.intro-btn-flee { background: #fff; color: var(--rose-deep); border: 2px solid var(--rose); }
+.intro-btn-go { background: linear-gradient(135deg, var(--rose), var(--rose-deep)); }
+.intro-hint { font-size: 13px; color: var(--ink-light); }
+
+.days-input-wrap { width: 220px; display: flex; justify-content: center; }
+.days-input {
+  width: 100%; text-align: center; font-size: 40px; letter-spacing: 14px;
+  font-weight: 800; color: var(--rose-deep); border: 2px solid var(--rose);
+  border-radius: 16px; padding: 10px 6px 10px 20px; background: #fff; outline: none;
+}
+.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; width: 260px; }
+.numpad-key {
+  font-size: 22px; font-weight: 700; color: var(--rose-deep);
+  background: #fff; border: 1.5px solid var(--rose); border-radius: 14px;
+  padding: 14px 0; cursor: pointer; transition: background .12s;
+}
+.numpad-key:hover { background: var(--rose-soft); }
+
+/* 全屏时铺满 */
+:fullscreen .intro-stage, :-webkit-full-screen .intro-stage { min-height: 100vh; }
+
+/* 让逃跑按钮在 fixed 下也不被遮挡 */
+.intro-btn-flee { z-index: 60; }
+

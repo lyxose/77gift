@@ -2,81 +2,161 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>七夕心愿礼 · 橘朵礼物挑选页</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="bg-decor" aria-hidden="true">
-    <span class="blob blob-a"></span>
-    <span class="blob blob-b"></span>
-    <span class="blob blob-c"></span>
+  <!-- 小猪装饰层（全局） -->
+  <div class="pig-decor" aria-hidden="true">
+    <svg class="pig pig-1" viewBox="0 0 120 100"><use href="#pigFull"/></svg>
+    <svg class="pig pig-2" viewBox="0 0 120 100"><use href="#pigFull"/></svg>
+    <svg class="pig pig-3" viewBox="0 0 120 100"><use href="#pigFull"/></svg>
+    <svg class="pig-ear pig-ear-1" viewBox="0 0 50 50"><use href="#pigEar"/></svg>
+    <svg class="pig-ear pig-ear-2" viewBox="0 0 50 50"><use href="#pigEar"/></svg>
+    <svg class="pig-tail pig-tail-1" viewBox="0 0 50 50"><use href="#pigTail"/></svg>
+    <svg class="pig-foot pig-foot-1" viewBox="0 0 40 40"><use href="#pigFoot"/></svg>
   </div>
 
-  <header class="hero">
-    <p class="hero-kicker"><span class="heart">♡</span> 七夕限定 · 心愿礼物清单 <span class="heart">♡</span></p>
-    <h1 class="hero-title">
-      我们逛了逛多次，<br class="mobile-only">“想买”说了好多遍……<br>
-      <span class="hero-accent">现在不用看价格啦！</span>
-    </h1>
-    <p class="hero-sub">点亮 <b>♡</b> 挑出最想要的 <b>3 件</b>，选好型号就好啦～</p>
-  </header>
+  <!-- SVG 符号定义 -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <g id="pigFull">
+        <ellipse cx="60" cy="62" rx="42" ry="30" fill="#ffd1dd"/>
+        <ellipse cx="60" cy="62" rx="42" ry="30" fill="none" stroke="#f2a9bd" stroke-width="2"/>
+        <circle cx="38" cy="34" r="13" fill="#ffd1dd" stroke="#f2a9bd" stroke-width="2"/>
+        <circle cx="82" cy="34" r="13" fill="#ffd1dd" stroke="#f2a9bd" stroke-width="2"/>
+        <circle cx="33" cy="34" r="4" fill="#e98aa6"/>
+        <circle cx="87" cy="34" r="4" fill="#e98aa6"/>
+        <ellipse cx="60" cy="58" rx="16" ry="12" fill="#ffbcd0" stroke="#f2a9bd" stroke-width="1.5"/>
+        <circle cx="60" cy="58" r="5" fill="#e98aa6"/>
+        <ellipse cx="48" cy="60" rx="3" ry="4" fill="#e98aa6"/>
+        <ellipse cx="72" cy="60" rx="3" ry="4" fill="#e98aa6"/>
+        <path d="M30 78 q-8 8 -2 14" stroke="#f2a9bd" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M90 78 q8 8 2 14" stroke="#f2a9bd" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </g>
+      <g id="pigEar">
+        <path d="M10 40 Q10 8 40 14 Q42 36 28 44 Z" fill="#ffd1dd" stroke="#f2a9bd" stroke-width="2"/>
+      </g>
+      <g id="pigTail">
+        <path d="M10 30 q22 -6 16 -20 q-8 -10 -16 0 q-6 8 4 12" fill="none" stroke="#f2a9bd" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <g id="pigFoot">
+        <ellipse cx="20" cy="22" rx="14" ry="11" fill="#ffd1dd" stroke="#f2a9bd" stroke-width="2"/>
+        <path d="M12 22 h16 M20 12 v20" stroke="#f2a9bd" stroke-width="1.5"/>
+      </g>
+    </defs>
+  </svg>
 
-  <main class="catalog">
-    <div class="toolbar">
-      <div class="search-box">
-        <span class="search-icon" aria-hidden="true">🔍</span>
-        <input id="searchInput" type="search" placeholder="搜索想要的心愿礼物…" autocomplete="off">
+  <!-- ============ 前置互动舞台 ============ -->
+  <section class="stage intro-stage" id="introStage">
+    <!-- 第一屏：开场 -->
+    <div class="screen screen-start active" id="screenStart">
+      <h1 class="intro-q">你知道今天是什么日子吗！</h1>
+      <div class="intro-options">
+        <button class="intro-btn" id="optRight" data-correct="1">七夕</button>
+        <button class="intro-btn intro-btn-flee" id="optFlee">2026年8月18日</button>
       </div>
-      <div class="chips" id="categoryChips"></div>
+      <p class="intro-hint">（提示：点对的那个就行～）</p>
     </div>
-    <div class="grid" id="productGrid"></div>
-    <div class="empty" id="emptyTip" hidden>没有找到对应的宝贝，换个关键词试试～</div>
-  </main>
 
-  <footer class="footer">
-    <p>挑满心愿礼物，点「确认心愿」就好啦～</p>
-    <p class="footer-sub">JUDYDOLL 橘朵 · 七夕心愿礼</p>
-  </footer>
+    <!-- 第二屏：答错/天数 -->
+    <div class="screen screen-days" id="screenDays">
+      <h1 class="intro-q">答错了！</h1>
+      <p class="intro-line">明明是在一起的第 <span class="blank">___</span> 天</p>
+      <p class="intro-line">再给你一次输入机会</p>
+      <div class="days-input-wrap">
+        <input class="days-input" id="daysInput" inputmode="numeric" maxlength="3"
+               autocomplete="off" placeholder="___" readonly>
+      </div>
+      <button class="intro-btn intro-btn-go" id="daysConfirm" disabled>确认</button>
+      <p class="intro-hint" id="daysHint">只能输入 951 哦，数字键会自己长对位置～</p>
+    </div>
 
-  <!-- 商品详情 / 选择型号 -->
-  <div class="modal-mask" id="modalMask" hidden>
-    <div class="modal modal-detail" role="dialog" aria-modal="true" aria-labelledby="modalName">
-      <button class="modal-close" id="modalClose" aria-label="关闭">✕</button>
-      <div class="modal-image-wrap"><img id="modalImage" class="modal-image" alt=""></div>
-      <div class="modal-body">
-        <h2 id="modalName"></h2>
-        <div class="modal-price">￥<span id="modalPrice">0.00</span>元</div>
-        <label class="field-label" for="modelSelect">选择型号</label>
-        <select id="modelSelect" class="model-select"></select>
-        <button class="btn-primary" id="addBtn">加入心愿单</button>
-        <p class="modal-tip">已选 <span id="modalCount">0</span> / 3 件</p>
+    <!-- 第三屏：奖励 -->
+    <div class="screen screen-reward" id="screenReward">
+      <h1 class="intro-q">你也太聪明了！</h1>
+      <p class="intro-line">奖励你小礼物！</p>
+      <div class="intro-options">
+        <button class="intro-btn intro-btn-flee" id="optNo">不用了</button>
+        <button class="intro-btn intro-btn-go" id="optYes">好耶！我要！</button>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- 提交确认 -->
-  <div class="modal-mask" id="confirmMask" hidden>
-    <div class="modal modal-confirm" role="dialog" aria-modal="true">
-      <button class="modal-close" id="confirmClose" aria-label="关闭">✕</button>
-      <h2 class="confirm-title">我的心愿清单</h2>
-      <p class="confirm-sub">为她挑好的 <b id="confirmCount">0</b> 件礼物：</p>
-      <ul class="confirm-list" id="confirmList"></ul>
-      <div class="confirm-actions">
-        <button class="btn-primary btn-confirm-wish" id="sendBtn">确认心愿</button>
+  <!-- ============ 礼物挑选舞台 ============ -->
+  <section class="stage gift-stage" id="giftStage" hidden>
+    <div class="bg-decor" aria-hidden="true">
+      <span class="blob blob-a"></span>
+      <span class="blob blob-b"></span>
+      <span class="blob blob-c"></span>
+    </div>
+
+    <header class="hero">
+      <p class="hero-kicker"><span class="heart">♡</span> 七夕限定 · 心愿礼物清单 <span class="heart">♡</span></p>
+      <h1 class="hero-title">
+        我们逛了逛多次，<br class="mobile-only">“想买”说了好多遍……<br>
+        <span class="hero-accent">现在不用看价格啦！</span>
+      </h1>
+      <p class="hero-sub">点亮 <b>♡</b> 挑出最想要的 <b>3 件</b>，选好型号就好啦～</p>
+    </header>
+
+    <main class="catalog">
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input id="searchInput" type="search" placeholder="搜索想要的心愿礼物…" autocomplete="off">
+        </div>
+        <div class="chips" id="categoryChips"></div>
       </div>
-      <p class="confirm-note">点「确认心愿」，清单就送到我这儿啦～</p>
-    </div>
-  </div>
+      <div class="grid" id="productGrid"></div>
+      <div class="empty" id="emptyTip" hidden>没有找到对应的宝贝，换个关键词试试～</div>
+    </main>
 
-  <!-- 底部心愿栏 -->
-  <div class="wish-bar" id="wishBar" hidden>
-    <div class="wish-bar-inner">
-      <div class="wish-count"><b id="wishCount">0</b><span class="wish-total"> / 3</span></div>
-      <div class="wish-tags" id="wishTags"></div>
-      <button class="btn-submit" id="submitBtn" disabled>提交心愿清单</button>
+    <footer class="footer">
+      <p>挑满心愿礼物，点「确认心愿」就好啦～</p>
+      <p class="footer-sub">JUDYDOLL 橘朵 · 七夕心愿礼</p>
+    </footer>
+
+    <!-- 商品详情 / 选择型号 -->
+    <div class="modal-mask" id="modalMask" hidden>
+      <div class="modal modal-detail" role="dialog" aria-modal="true" aria-labelledby="modalName">
+        <button class="modal-close" id="modalClose" aria-label="关闭">✕</button>
+        <div class="modal-image-wrap"><img id="modalImage" class="modal-image" alt=""></div>
+        <div class="modal-body">
+          <h2 id="modalName"></h2>
+          <div class="modal-price">￥<span id="modalPrice">0.00</span>元</div>
+          <label class="field-label" for="modelSelect">选择型号</label>
+          <select id="modelSelect" class="model-select"></select>
+          <button class="btn-primary" id="addBtn">加入心愿单</button>
+          <p class="modal-tip">已选 <span id="modalCount">0</span> / 3 件</p>
+        </div>
+      </div>
     </div>
-  </div>
+
+    <!-- 提交确认 -->
+    <div class="modal-mask" id="confirmMask" hidden>
+      <div class="modal modal-confirm" role="dialog" aria-modal="true">
+        <button class="modal-close" id="confirmClose" aria-label="关闭">✕</button>
+        <h2 class="confirm-title">我的心愿清单</h2>
+        <p class="confirm-sub">为她挑好的 <b id="confirmCount">0</b> 件礼物：</p>
+        <ul class="confirm-list" id="confirmList"></ul>
+        <div class="confirm-actions">
+          <button class="btn-primary btn-confirm-wish" id="sendBtn">确认心愿</button>
+        </div>
+        <p class="confirm-note">点「确认心愿」，清单就送到我这儿啦～</p>
+      </div>
+    </div>
+
+    <!-- 底部心愿栏 -->
+    <div class="wish-bar" id="wishBar" hidden>
+      <div class="wish-bar-inner">
+        <div class="wish-count"><b id="wishCount">0</b><span class="wish-total"> / 3</span></div>
+        <div class="wish-tags" id="wishTags"></div>
+        <button class="btn-submit" id="submitBtn" disabled>提交心愿清单</button>
+      </div>
+    </div>
+  </section>
 
   <div class="toast" id="toast" hidden></div>
 
