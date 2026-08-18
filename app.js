@@ -375,16 +375,21 @@ function sendWish() {
   const items = Array.from(wishMap.values()).map(({ product, model, price }) => ({
     name: product.name,
     model: model || '默认型号',
-    price: fmtPrice(price)
+    price: fmtPrice(price),
+    url: product.url || ''
   }));
+
+  const lineOf = (it, i) => {
+    const base = `${i + 1}. ${it.name}（${it.model}） ￥${it.price}`;
+    return it.url ? `${base}\n   链接：${it.url}` : base;
+  };
 
   const payload = {
     access_key: WEB3FORMS_KEY,
     subject: '七夕心愿清单 ♡',
     from_name: '七夕心愿',
     to: EMAIL,
-    message: '收到一份七夕心愿清单：\n' + items.map((it, i) =>
-      `${i + 1}. ${it.name}（${it.model}） ￥${it.price}`).join('\n')
+    message: '收到一份七夕心愿清单：\n' + items.map(lineOf).join('\n')
   };
 
   fetch('https://api.web3forms.com/submit', {
@@ -398,8 +403,12 @@ function sendWish() {
 }
 
 function fallbackMail(items) {
+  const lineOf = (it, i) => {
+    const base = `${i + 1}. ${it.name}（${it.model}） ￥${it.price}`;
+    return it.url ? `${base}\n   链接：${it.url}` : base;
+  };
   const body = '我的七夕心愿清单：%0D%0A' +
-    items.map((it, i) => `${i + 1}. ${it.name}（${it.model}） ￥${it.price}`).join('%0D%0A');
+    items.map((it, i) => lineOf(it, i).replace(/\n/g, '%0D%0A')).join('%0D%0A');
   window.location.href = `mailto:${EMAIL}?subject=七夕心愿清单 ♡&body=${body}`;
 }
 
