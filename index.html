@@ -9,44 +9,15 @@
 <body>
   <!-- 小猪装饰层（全局） -->
   <div class="pig-decor" aria-hidden="true">
-    <svg class="pig pig-1" viewBox="0 0 120 100"><use href="#pigFull"/></svg>
-    <svg class="pig pig-2" viewBox="0 0 120 100"><use href="#pigFull"/></svg>
-    <svg class="pig pig-3" viewBox="0 0 120 100"><use href="#pigFull"/></svg>
-    <svg class="pig-ear pig-ear-1" viewBox="0 0 50 50"><use href="#pigEar"/></svg>
-    <svg class="pig-ear pig-ear-2" viewBox="0 0 50 50"><use href="#pigEar"/></svg>
-    <svg class="pig-tail pig-tail-1" viewBox="0 0 50 50"><use href="#pigTail"/></svg>
-    <svg class="pig-foot pig-foot-1" viewBox="0 0 40 40"><use href="#pigFoot"/></svg>
+    <img class="pig pig-1" src="images/pigs/pig-full.png" alt="">
+    <img class="pig pig-2" src="images/pigs/pig-courier.png" alt="">
+    <img class="pig pig-3" src="images/pigs/pig-face.png" alt="">
+    <img class="pig-ear pig-ear-1" src="images/pigs/pig-ear.png" alt="">
+    <img class="pig-ear pig-ear-2" src="images/pigs/pig-ear.png" alt="">
+    <img class="pig-tail pig-tail-1" src="images/pigs/pig-tail.png" alt="">
+    <img class="pig-foot pig-foot-1" src="images/pigs/pig-foot.png" alt="">
+    <img class="pig-foot pig-foot-2" src="images/pigs/pig-foot.png" alt="">
   </div>
-
-  <!-- SVG 符号定义 -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <defs>
-      <g id="pigFull">
-        <ellipse cx="60" cy="62" rx="42" ry="30" fill="#ffd1dd"/>
-        <ellipse cx="60" cy="62" rx="42" ry="30" fill="none" stroke="#f2a9bd" stroke-width="2"/>
-        <circle cx="38" cy="34" r="13" fill="#ffd1dd" stroke="#f2a9bd" stroke-width="2"/>
-        <circle cx="82" cy="34" r="13" fill="#ffd1dd" stroke="#f2a9bd" stroke-width="2"/>
-        <circle cx="33" cy="34" r="4" fill="#e98aa6"/>
-        <circle cx="87" cy="34" r="4" fill="#e98aa6"/>
-        <ellipse cx="60" cy="58" rx="16" ry="12" fill="#ffbcd0" stroke="#f2a9bd" stroke-width="1.5"/>
-        <circle cx="60" cy="58" r="5" fill="#e98aa6"/>
-        <ellipse cx="48" cy="60" rx="3" ry="4" fill="#e98aa6"/>
-        <ellipse cx="72" cy="60" rx="3" ry="4" fill="#e98aa6"/>
-        <path d="M30 78 q-8 8 -2 14" stroke="#f2a9bd" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <path d="M90 78 q8 8 2 14" stroke="#f2a9bd" stroke-width="3" fill="none" stroke-linecap="round"/>
-      </g>
-      <g id="pigEar">
-        <path d="M10 40 Q10 8 40 14 Q42 36 28 44 Z" fill="#ffd1dd" stroke="#f2a9bd" stroke-width="2"/>
-      </g>
-      <g id="pigTail">
-        <path d="M10 30 q22 -6 16 -20 q-8 -10 -16 0 q-6 8 4 12" fill="none" stroke="#f2a9bd" stroke-width="3" stroke-linecap="round"/>
-      </g>
-      <g id="pigFoot">
-        <ellipse cx="20" cy="22" rx="14" ry="11" fill="#ffd1dd" stroke="#f2a9bd" stroke-width="2"/>
-        <path d="M12 22 h16 M20 12 v20" stroke="#f2a9bd" stroke-width="1.5"/>
-      </g>
-    </defs>
-  </svg>
 
   <!-- ============ 前置互动舞台 ============ -->
   <section class="stage intro-stage" id="introStage">
@@ -65,9 +36,13 @@
       <h1 class="intro-q">答错了！</h1>
       <p class="intro-line">明明是在一起的第 <span class="blank">___</span> 天</p>
       <p class="intro-line">再给你一次输入机会</p>
-      <div class="days-input-wrap">
-        <input class="days-input" id="daysInput" inputmode="numeric" maxlength="3"
-               autocomplete="off" placeholder="___" readonly>
+      <div class="days-wrap">
+        <div class="day-slots" id="daySlots">
+          <div class="day-slot" data-idx="0"></div>
+          <div class="day-slot" data-idx="1"></div>
+          <div class="day-slot" data-idx="2"></div>
+        </div>
+        <div class="days-numpad" id="daysNumpad"></div>
       </div>
       <button class="intro-btn intro-btn-go" id="daysConfirm" disabled>确认</button>
       <p class="intro-hint" id="daysHint">只能输入 951 哦，数字键会自己长对位置～</p>
@@ -93,12 +68,12 @@
     </div>
 
     <header class="hero">
-      <p class="hero-kicker"><span class="heart">♡</span> 七夕限定 · 心愿礼物清单 <span class="heart">♡</span></p>
+      <p class="hero-kicker"><span class="heart">♡</span> 七夕限定 · 心愿清单 <span class="heart">♡</span></p>
       <h1 class="hero-title">
         我们逛了逛多次，<br class="mobile-only">“想买”说了好多遍……<br>
         <span class="hero-accent">现在不用看价格啦！</span>
       </h1>
-      <p class="hero-sub">点亮 <b>♡</b> 挑出最想要的 <b>3 件</b>，选好型号就好啦～</p>
+      <p class="hero-sub">点亮 <b>♡</b> 挑出最想要的礼物，选好型号就好啦～</p>
     </header>
 
     <main class="catalog">
@@ -114,7 +89,7 @@
     </main>
 
     <footer class="footer">
-      <p>挑满心愿礼物，点「确认心愿」就好啦～</p>
+      <p>挑好心愿，点「确认心愿」就好啦～</p>
       <p class="footer-sub">JUDYDOLL 橘朵 · 七夕心愿礼</p>
     </footer>
 
@@ -129,7 +104,7 @@
           <label class="field-label" for="modelSelect">选择型号</label>
           <select id="modelSelect" class="model-select"></select>
           <button class="btn-primary" id="addBtn">加入心愿单</button>
-          <p class="modal-tip">已选 <span id="modalCount">0</span> / 3 件</p>
+          <p class="modal-tip">已选 <span id="modalCount">0</span> 件</p>
         </div>
       </div>
     </div>
@@ -155,6 +130,19 @@
         <div class="wish-tags" id="wishTags"></div>
         <button class="btn-submit" id="submitBtn" disabled>提交心愿清单</button>
       </div>
+    </div>
+  </section>
+
+  <!-- 提交成功全屏页 -->
+  <section class="success-stage" id="successStage" hidden>
+    <div class="success-bg" aria-hidden="true"></div>
+    <canvas class="confetti" id="confettiCanvas" aria-hidden="true"></canvas>
+    <div class="success-content">
+      <img class="success-pig" src="images/pigs/pig-courier.png" alt="">
+      <h1 class="success-title">许愿成功</h1>
+      <p class="success-sub">礼物即将由猪猪快递配送</p>
+      <p class="success-meta">已收到你的心愿清单，正在精心打包中 ♡</p>
+      <button class="success-close" id="successClose">收下这份甜蜜</button>
     </div>
   </section>
 

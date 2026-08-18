@@ -1,394 +1,526 @@
-/* 七夕心愿礼 · 橘朵礼物挑选页 */
-(function () {
-  'use strict';
+/* ============================================================
+   七夕心愿礼 · 橘朵礼物挑选页
+   ============================================================ */
+'use strict';
 
-  var EMAIL = 'luyx@psych.ac.cn';
-  var WEB3FORMS_KEY = '794b64d3-54c7-414e-9e7b-dfc07c481586';
-  var MAX_ITEMS = 3;
-  var CATEGORY_ORDER = ['眼影', '腮红', '修容', '遮瑕', '底妆', '定妆', '唇妆', '眼线', '眉妆', '礼盒', '套装', '其他'];
+const EMAIL = 'luyx@psych.ac.cn';
+const WEB3FORMS_KEY = '794b64d3-8f9a-494f-85b9-1fc1e7b3e8a2';
+const MAX_ITEMS = 3;
+const TARGET_DAYS = '951';
 
-  /* ============ 全屏 ============ */
-  function requestFullscreen() {
-    var el = document.documentElement;
-    var fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-    if (fn) { try { fn.call(el); } catch (e) {} }
-  }
-  // 打开页面、任意按键/点击时尝试全屏（需用户手势，浏览器才会允许）
-  document.addEventListener('click', requestFullscreen, { once: false });
-  document.addEventListener('keydown', requestFullscreen);
+/* ---------- 小工具 ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
-  /* ============ 工具 ============ */
-  function $(id) { return document.getElementById(id); }
-  function escapeHtml(s) {
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
-  function toast(msg) {
-    var t = $('toast');
-    t.textContent = msg;
-    t.hidden = false;
-    clearTimeout(toast._t);
-    toast._t = setTimeout(function () { t.hidden = true; }, 2200);
-  }
+function on(el, ev, fn) {
+  if (!el) return;
+  el.addEventListener(ev, fn);
+}
 
-  /* ============ 前置互动流程 ============ */
-  function initIntro() {
-    var stage = $('introStage');
-    var sStart = $('screenStart');
-    var sDays = $('screenDays');
-    var sReward = $('screenReward');
+function requestFS() {
+  const el = document.documentElement;
+  try {
+    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (fn) (fn.call(el) || Promise.resolve()).catch(() => {});
+  } catch (_) {}
+}
 
-    function show(screen) {
-      [sStart, sDays, sReward].forEach(function (s) { s.classList.remove('active'); });
-      screen.classList.add('active');
-    }
+function showScreen(node) {
+  $$('.screen').forEach(s => s.classList.remove('active'));
+  if (node) node.classList.add('active');
+}
 
-    // 1) 开场：点“七夕”进入天数页；“2026年8月18日”会逃跑
-    $('optRight').addEventListener('click', function () { show(sDays); });
-    makeFlee($('optFlee'));
+function enterGift() {
+  $('#introStage').classList.add('done');
+  const g = $('#giftStage');
+  g.hidden = false;
+  requestFS();
+}
 
-    // 2) 天数密码：只能输入 951（每键锁定一个正确位）
-    var daysInput = $('daysInput');
-    var expected = ['9', '5', '1'];
-    var filled = [false, false, false];
-    var digits = ['', '', ''];
+/* ============================================================
+   前置互动流程
+   ============================================================ */
+function initIntro() {
+  // 第一屏：开场
+  const optRight = $('#optRight');
+  const optFlee = $('#optFlee');
+  if (optRight) on(optRight, 'click', () => { requestFS(); showScreen($('#screenDays')); });
 
-    // 数字小键盘弹窗（移动端无实体键盘时也能用）
-    buildNumpad(daysInput, function (key) { tryDigit(key); });
+  // 逃跑按钮（滑稽溜走）
+  makeFlee(optFlee);
+  makeFlee($('#optNo'));
 
-    daysInput.addEventListener('input', function () {
-      // 限制为数字并按位置校正
-      var raw = daysInput.value.replace(/\D/g, '').slice(0, 3);
-      daysInput.value = raw;
-      checkDays();
+  // 第二屏：天数 951 输入
+  initDays();
+
+  // 第三屏：奖励
+  const optYes = $('#optYes');
+  if (optYes) on(optYes, 'click', () => { requestFS(); enterGift(); });
+}
+
+/* ---------- 天数 951 输入：三格 + 小键盘 ---------- */
+function initDays() {
+  const PAIRS = [['9', '9'], ['5', '5'], ['1', '1']];
+  const slots = $$('#daySlots .day-slot');
+  const digits = ['', '', ''];
+  const confirmBtn = $('#daysConfirm');
+  const hint = $('#daysHint');
+
+  function refresh() {
+    slots.forEach((slot, i) => {
+      slot.textContent = digits[i];
+      slot.classList.toggle('filled', !!digits[i]);
     });
-
-    function tryDigit(d) {
-      if (!/^\d$/.test(d)) return;
-      // 找第一个还没填的位，且该位期望值 == d 才接受
-      for (var i = 0; i < 3; i++) {
-        if (!filled[i]) {
-          if (expected[i] === d) {
-            digits[i] = d; filled[i] = true;
-          }
-          break; // 只允许按顺序填；填错的位置直接忽略（无法填入）
-        }
-      }
-      daysInput.value = digits.join('');
-      checkDays();
-    }
-
-    function checkDays() {
-      if (filled[0] && filled[1] && filled[2]) {
-        $('daysConfirm').disabled = false;
-        $('daysHint').textContent = '答对啦！点确认继续～';
-      }
-    }
-
-    // 模拟键盘：监听真实键盘事件（桌面端）
-    document.addEventListener('keydown', function (e) {
-      if (!sDays.classList.contains('active')) return;
-      if (e.key >= '0' && e.key <= '9') { tryDigit(e.key); e.preventDefault(); }
-      if (e.key === 'Backspace') { /* 不允许删除，保持锁定 */ e.preventDefault(); }
-      if (e.key === 'Enter' && !$('daysConfirm').disabled) { goReward(); }
-    });
-
-    $('daysConfirm').addEventListener('click', function () {
-      if (!$('daysConfirm').disabled) goReward();
-    });
-
-    function goReward() { show(sReward); }
-
-    // 3) 奖励页：“不用了”逃跑；“好耶！我要！”进入礼物页
-    makeFlee($('optNo'));
-    $('optYes').addEventListener('click', function () {
-      stage.classList.add('done');
-      $('giftStage').hidden = false;
-      initGift();
-      requestFullscreen();
-    });
+    const ok = digits.join('') === TARGET_DAYS;
+    confirmBtn.disabled = !ok;
+    if (ok && hint) hint.textContent = '答对啦！点「确认」继续～';
   }
 
-  // 让按钮在 hover/touch/靠近时迅速跑到随机位置
-  function makeFlee(btn) {
-    if (!btn) return;
-    var busy = false;
-    function flee() {
-      if (busy) return; busy = true;
-      var w = btn.offsetWidth, h = btn.offsetHeight;
-      var maxX = Math.max(10, window.innerWidth - w - 16);
-      var maxY = Math.max(10, window.innerHeight - h - 16);
-      var x = Math.random() * maxX;
-      var y = Math.random() * maxY;
-      btn.style.position = 'fixed';
-      btn.style.left = x + 'px';
-      btn.style.top = y + 'px';
-      btn.style.zIndex = 60;
-      setTimeout(function () { busy = false; }, 120);
-    }
-    btn.addEventListener('mouseenter', flee);
-    btn.addEventListener('touchstart', function (e) { e.preventDefault(); flee(); }, { passive: false });
-    // 鼠标靠近也躲
-    document.addEventListener('mousemove', function (e) {
-      if (btn.style.position !== 'fixed') return;
-      var r = btn.getBoundingClientRect();
-      var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      var d = Math.hypot(e.clientX - cx, e.clientY - cy);
-      if (d < 90) flee();
-    });
-  }
-
-  // 数字小键盘（触屏友好）
-  function buildNumpad(input, onKey) {
-    var pad = document.createElement('div');
+  // 键盘
+  const numpad = $('#daysNumpad');
+  if (numpad) {
+    const pad = document.createElement('div');
     pad.className = 'numpad';
-    var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '清除', '0', '⌫'];
-    keys.forEach(function (k) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'numpad-key';
-      b.textContent = k;
-      b.addEventListener('click', function (e) {
-        e.stopPropagation();
-        if (k === '清除') { input.value = ''; }
-        else if (k === '⌫') { /* 锁定不允许删 */ }
-        else { onKey(k); }
-      });
-      pad.appendChild(b);
+    ['1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(d => {
+      const k = document.createElement('button');
+      k.className = 'numpad-key';
+      k.type = 'button';
+      k.textContent = d;
+      on(k, 'click', () => tryDigit(d));
+      pad.appendChild(k);
     });
-    var wrap = input.parentElement;
-    wrap.appendChild(pad);
+    numpad.appendChild(pad);
   }
 
-  /* ============ 礼物挑选页 ============ */
-  function initGift() {
-    if (initGift._done) return; initGift._done = true;
-
-    var products = [];
-    var wishlist = [];
-    var activeCategory = '全部';
-    var keyword = '';
-    var current = null;
-
-    var els = {
-      grid: $('productGrid'),
-      chips: $('categoryChips'),
-      emptyTip: $('emptyTip'),
-      searchInput: $('searchInput'),
-      modalMask: $('modalMask'),
-      modalImage: $('modalImage'),
-      modalName: $('modalName'),
-      modalPrice: $('modalPrice'),
-      modelSelect: $('modelSelect'),
-      addBtn: $('addBtn'),
-      modalCount: $('modalCount'),
-      modalClose: $('modalClose'),
-      confirmMask: $('confirmMask'),
-      confirmClose: $('confirmClose'),
-      confirmCount: $('confirmCount'),
-      confirmList: $('confirmList'),
-      sendBtn: $('sendBtn'),
-      wishBar: $('wishBar'),
-      wishCount: $('wishCount'),
-      wishTags: $('wishTags'),
-      submitBtn: $('submitBtn'),
-      toast: $('toast')
-    };
-
-    function renderChips() {
-      var cats = products.reduce(function (acc, p) {
-        if (acc.indexOf(p.category) === -1) acc.push(p.category);
-        return acc;
-      }, []);
-      cats.sort(function (a, b) {
-        var ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
-        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-      });
-      var html = '<div class="chip active" data-cat="全部">全部</div>';
-      cats.forEach(function (c) {
-        html += '<div class="chip" data-cat="' + escapeHtml(c) + '">' + escapeHtml(c) + '</div>';
-      });
-      els.chips.innerHTML = html;
-      els.chips.addEventListener('click', function (e) {
-        var chip = e.target.closest('.chip');
-        if (!chip) return;
-        activeCategory = chip.dataset.cat;
-        els.chips.querySelectorAll('.chip').forEach(function (c) {
-          c.classList.toggle('active', c === chip);
-        });
-        renderGrid();
-      });
+  function tryDigit(d) {
+    const idx = digits.findIndex(x => x === '');
+    if (idx === -1) return;
+    if (PAIRS[idx][0] === d) {
+      digits[idx] = d;
+      refresh();
+    } else {
+      const slot = slots[idx];
+      slot.classList.remove('wrong');
+      void slot.offsetWidth; // 重启动画
+      slot.classList.add('wrong');
     }
+  }
+  window.__tryDayDigit = tryDigit;
 
-    function visibleProducts() {
-      return products.filter(function (p) {
-        var okCat = activeCategory === '全部' || p.category === activeCategory;
-        var okKw = !keyword ||
-          (p.name && p.name.toLowerCase().indexOf(keyword) > -1) ||
-          (p.fullName && p.fullName.toLowerCase().indexOf(keyword) > -1) ||
-          p.options.some(function (o) { return o.toLowerCase().indexOf(keyword) > -1; });
-        return okCat && okKw;
-      });
+  // 物理键盘支持
+  on(document, 'keydown', (e) => {
+    if ($('#introStage').classList.contains('done')) return;
+    if (/^[0-9]$/.test(e.key)) tryDigit(e.key);
+  });
+
+  if (confirmBtn) on(confirmBtn, 'click', () => { requestFS(); showScreen($('#screenReward')); });
+  refresh();
+}
+
+/* ---------- 逃跑按钮：连续平滑溜走（先快后慢的滑稽感）---------- */
+function makeFlee(btn) {
+  if (!btn) return;
+  const move = () => {
+    const m = 16, w = btn.offsetWidth || 140, h = btn.offsetHeight || 48;
+    const minX = m, minY = m;
+    const maxX = Math.max(m, window.innerWidth - w - m);
+    const maxY = Math.max(m, window.innerHeight - h - m);
+    const x = minX + Math.random() * (maxX - minX);
+    const y = minY + Math.random() * (maxY - minY);
+    btn.style.position = 'fixed';
+    btn.style.left = x + 'px';
+    btn.style.top = y + 'px';
+    btn.style.right = 'auto';
+    btn.style.bottom = 'auto';
+    btn.style.margin = '0';
+  };
+  on(btn, 'mouseover', move);
+  on(btn, 'touchstart', (e) => { e.preventDefault(); move(); });
+}
+
+/* ============================================================
+   礼物挑选
+   ============================================================ */
+let PRODUCTS = [];
+let CATEGORIES = [];
+const wishMap = new Map();      // id -> { product, model, price }
+let current = null;             // 当前打开详情的商品
+let allModels = [];
+let modelIndex = 0;
+
+function fmtPrice(p) {
+  const n = Number(p);
+  return isNaN(n) ? (p || '0') : n.toFixed(2);
+}
+
+async function loadProducts() {
+  try {
+    const res = await fetch('products.json', { cache: 'no-store' });
+    const data = await res.json();
+    PRODUCTS = Array.isArray(data) ? data : (data.products || []);
+  } catch (e) {
+    PRODUCTS = [];
+  }
+  CATEGORIES = ['全部', ...Array.from(new Set(PRODUCTS.map(p => p.category || '其他').filter(Boolean)))];
+  renderChips();
+  renderGrid();
+}
+
+function renderChips() {
+  const wrap = $('#categoryChips');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  CATEGORIES.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (i === 0 ? ' active' : '');
+    b.textContent = c;
+    on(b, 'click', () => {
+      $$('.chip', wrap).forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      renderGrid();
+    });
+    wrap.appendChild(b);
+  });
+}
+
+function getFiltered() {
+  const q = ($('#searchInput').value || '').trim().toLowerCase();
+  const active = $('.chip.active');
+  const cat = active ? active.textContent : '全部';
+  return PRODUCTS.filter(p => {
+    const okCat = cat === '全部' || (p.category || '其他') === cat;
+    const okQ = !q ||
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.subtitle || '').toLowerCase().includes(q);
+    return okCat && okQ;
+  });
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function imgSrc(p) {
+  if (p.cover) return p.cover;
+  if (p.images && p.images.length) return p.images[0];
+  return 'images/placeholder.png';
+}
+
+function renderGrid() {
+  const grid = $('#productGrid');
+  const emptyTip = $('#emptyTip');
+  if (!grid) return;
+  const list = getFiltered();
+  grid.innerHTML = '';
+  emptyTip.hidden = list.length > 0;
+
+  list.forEach(p => {
+    const id = p.id;
+    const card = document.createElement('div');
+    card.className = 'card' + (wishMap.has(id) ? ' chosen' : '');
+    card.innerHTML = `
+      <div class="card-img-wrap">
+        <img class="card-img" loading="lazy" src="${esc(imgSrc(p))}" alt="${esc(p.name)}" onerror="this.src='images/placeholder.png'">
+      </div>
+      <span class="card-tag">${esc(p.tag || p.category || '橘朵')}</span>
+      <span class="chosen-badge">♥</span>
+      <div class="card-body">
+        <div class="card-name">${esc(p.name)}</div>
+        <div class="card-row">
+          <span class="card-price"><small>￥</small>${esc(fmtPrice(p.price))}</span>
+          <button class="card-heart" type="button" aria-label="选中心愿">
+            <span class="outline">♡</span><span class="filled">♥</span>
+          </button>
+        </div>
+      </div>`;
+    on(card, 'click', (e) => {
+      if (e.target.closest('.card-heart')) return;
+      openDetail(p);
+    });
+    const heart = $('.card-heart', card);
+    on(heart, 'click', (e) => { e.stopPropagation(); toggleWish(p); });
+    grid.appendChild(card);
+  });
+}
+
+function toggleWish(p) {
+  const id = p.id;
+  if (wishMap.has(id)) {
+    wishMap.delete(id);
+  } else {
+    const models = (p.models && p.models.length) ? p.models : null;
+    if (models) {
+      openDetail(p);
+      return;
     }
+    wishMap.set(id, { product: p, model: '', price: p.price });
+  }
+  syncWishUI();
+  renderGrid();
+}
 
-    function renderGrid() {
-      var list = visibleProducts();
-      els.grid.innerHTML = list.map(function (p) {
-        var chosen = wishlist.find(function (w) { return w.pid === p.id; });
-        return '' +
-          '<div class="card' + (chosen ? ' chosen' : '') + '" data-id="' + escapeHtml(p.id) + '">' +
-          '<div class="card-img-wrap"><img class="card-img" src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '" loading="lazy"></div>' +
-          '<span class="card-tag">' + escapeHtml(p.category) + '</span>' +
-          (chosen ? '<span class="chosen-badge">' + (wishlist.indexOf(chosen) + 1) + '</span>' : '') +
-          '<div class="card-body">' +
-          '<div class="card-name">' + escapeHtml(p.name) + '</div>' +
-          '<div class="card-row">' +
-          '<div class="card-price"><small>￥</small>0.00<small>元</small></div>' +
-          '<button class="card-heart" data-id="' + escapeHtml(p.id) + '" aria-label="加入心愿单" title="加入心愿单">' +
-          '<span class="outline">♡</span><span class="filled">♥</span></button>' +
-          '</div></div></div>';
-      }).join('');
-      els.emptyTip.hidden = list.length > 0;
+function openDetail(p) {
+  current = p;
+  const mask = $('#modalMask');
+  if (!mask) return;
+  $('#modalImage').src = imgSrc(p);
+  $('#modalImage').onerror = function () { this.src = 'images/placeholder.png'; };
+  $('#modalName').textContent = p.name || '';
+  $('#modalPrice').textContent = fmtPrice(p.price);
 
-      els.grid.querySelectorAll('.card').forEach(function (card) {
-        card.addEventListener('click', function (e) {
-          var heart = e.target.closest('.card-heart');
-          if (heart) {
-            e.stopPropagation();
-            var pid = heart.dataset.id;
-            var existing = wishlist.find(function (w) { return w.pid === pid; });
-            if (existing) {
-              wishlist.splice(wishlist.indexOf(existing), 1);
-              renderGrid(); renderWishBar();
-            } else { openModal(pid); }
-            return;
-          }
-          openModal(card.dataset.id);
-        });
-      });
+  const sel = $('#modelSelect');
+  sel.innerHTML = '';
+  const models = (p.models && p.models.length) ? p.models : null;
+  if (models) {
+    sel.parentElement.style.display = '';
+    models.forEach(m => {
+      const o = document.createElement('option');
+      o.value = m; o.textContent = m;
+      sel.appendChild(o);
+    });
+  } else {
+    sel.parentElement.style.display = 'none';
+  }
+  updateModalCount();
+  mask.hidden = false;
+  requestAnimationFrame(() => mask.classList.add('open'));
+}
+
+function updateModalCount() {
+  const id = current && current.id;
+  const c = id && wishMap.has(id) ? (wishMap.get(id).model ? 1 : 1) : 0;
+  const el = $('#modalCount');
+  if (el) el.textContent = c;
+}
+
+function closeModal() {
+  const mask = $('#modalMask');
+  if (!mask) return;
+  mask.classList.remove('open');
+  setTimeout(() => { mask.hidden = true; }, 200);
+}
+
+function addToWish() {
+  if (!current) return;
+  const model = current.models && current.models.length ? $('#modelSelect').value : '';
+  wishMap.set(current.id, { product: current, model, price: current.price });
+  updateModalCount();
+  syncWishUI();
+  renderGrid();
+  closeModal();
+}
+
+function removeWish(id) {
+  wishMap.delete(id);
+  syncWishUI();
+  renderGrid();
+}
+
+function syncWishUI() {
+  const count = wishMap.size;
+  const bar = $('#wishBar');
+  const submitBtn = $('#submitBtn');
+  const countEl = $('#wishCount');
+  if (countEl) countEl.textContent = count;
+  if (bar) bar.hidden = count === 0;
+  if (submitBtn) submitBtn.disabled = count === 0;
+
+  const tags = $('#wishTags');
+  if (tags) {
+    tags.innerHTML = '';
+    for (const { product, model } of wishMap.values()) {
+      const t = document.createElement('span');
+      t.className = 'wish-tag';
+      t.innerHTML = `<img class="thumb" src="${esc(imgSrc(product))}" onerror="this.style.display='none'">` +
+        `<span>${esc(product.name)}${model ? ' · ' + esc(model) : ''}</span>` +
+        `<button class="tag-x" aria-label="移除">✕</button>`;
+      on($('.tag-x', t), 'click', () => removeWish(product.id));
+      tags.appendChild(t);
     }
+  }
+}
 
-    function openModal(pid) {
-      var p = products.find(function (x) { return x.id === pid; });
-      if (!p) return;
-      current = p;
-      els.modalImage.src = p.image;
-      els.modalImage.alt = p.name;
-      els.modalName.textContent = p.name;
-      els.modalPrice.textContent = '0.00';
-      var existing = wishlist.find(function (w) { return w.pid === pid; });
-      els.modelSelect.innerHTML = p.options.map(function (o, i) {
-        return '<option value="' + escapeHtml(o) + '"' +
-          (existing && existing.model === o ? ' selected' : (i === 0 ? ' selected' : '')) + '>' +
-          escapeHtml(o) + '</option>';
-      }).join('');
-      els.addBtn.textContent = existing ? '更新心愿单' : '加入心愿单';
-      updateModalCount();
-      els.modalMask.classList.add('open');
-    }
-    function closeModal() { els.modalMask.classList.remove('open'); current = null; }
-    function updateModalCount() { els.modalCount.textContent = String(wishlist.length); }
+/* ---------- 提交 / 确认弹窗 ---------- */
+function openConfirm() {
+  if (wishMap.size === 0) return;
+  const mask = $('#confirmMask');
+  if (!mask) return;
+  $('#confirmCount').textContent = wishMap.size;
+  const list = $('#confirmList');
+  list.innerHTML = '';
+  for (const { product, model, price } of wishMap.values()) {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <img class="thumb" src="${esc(imgSrc(product))}" onerror="this.style.display='none'">
+      <div class="li-info">
+        <div class="li-name">${esc(product.name)}</div>
+        <div class="li-model">${esc(model || '默认型号')} · ￥${esc(fmtPrice(price))}</div>
+      </div>`;
+    list.appendChild(li);
+  }
+  mask.hidden = false;
+  requestAnimationFrame(() => mask.classList.add('open'));
+}
 
-    function addCurrent() {
-      if (!current) return;
-      var model = els.modelSelect.value;
-      var existing = wishlist.find(function (w) { return w.pid === current.id; });
-      if (existing) {
-        existing.model = model; toast('已更新心愿单 ✿');
-      } else if (wishlist.length >= MAX_ITEMS) {
-        toast('最多只能选 3 件心愿礼物哦～'); return;
+function closeConfirm() {
+  const mask = $('#confirmMask');
+  if (!mask) return;
+  mask.classList.remove('open');
+  setTimeout(() => { mask.hidden = true; }, 200);
+}
+
+function sendWish() {
+  const items = Array.from(wishMap.values()).map(({ product, model, price }) => ({
+    name: product.name,
+    model: model || '默认型号',
+    price: fmtPrice(price)
+  }));
+
+  const payload = {
+    access_key: WEB3FORMS_KEY,
+    subject: '七夕心愿清单 ♡',
+    from_name: '七夕心愿',
+    to: EMAIL,
+    message: '收到一份七夕心愿清单：\n' + items.map((it, i) =>
+      `${i + 1}. ${it.name}（${it.model}） ￥${it.price}`).join('\n')
+  };
+
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(r => r.json())
+    .then(() => { closeConfirm(); showSuccess(); })
+    .catch(() => { closeConfirm(); fallbackMail(items); showSuccess(); });
+}
+
+function fallbackMail(items) {
+  const body = '我的七夕心愿清单：%0D%0A' +
+    items.map((it, i) => `${i + 1}. ${it.name}（${it.model}） ￥${it.price}`).join('%0D%0A');
+  window.location.href = `mailto:${EMAIL}?subject=七夕心愿清单 ♡&body=${body}`;
+}
+
+/* ---------- 提交成功全屏页 ---------- */
+function showSuccess() {
+  // 关闭挑选商品的页面
+  const gift = $('#giftStage');
+  if (gift) gift.style.display = 'none';
+  const intro = $('#introStage');
+  if (intro) intro.style.display = 'none';
+
+  const stage = $('#successStage');
+  stage.hidden = false;
+  requestAnimationFrame(() => stage.classList.add('open'));
+  requestFS();
+  startConfetti();
+}
+
+function closeSuccess() {
+  const stage = $('#successStage');
+  stage.classList.remove('open');
+  setTimeout(() => { stage.hidden = true; }, 400);
+  location.reload();
+}
+
+/* ---------- 彩带飘落动效 ---------- */
+let confettiRAF = null;
+function startConfetti() {
+  const canvas = $('#confettiCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  let W, H;
+  function resize() {
+    W = canvas.width = window.innerWidth * dpr;
+    H = canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const colors = ['#d94f6f', '#e87391', '#c9a35c', '#f7ecd7', '#ffd1dd', '#ffb3c6'];
+  const N = 160;
+  const parts = Array.from({ length: N }, () => ({
+    x: Math.random() * W,
+    y: Math.random() * -H,
+    r: (6 + Math.random() * 8) * dpr,
+    c: colors[(Math.random() * colors.length) | 0],
+    vy: (1.5 + Math.random() * 3) * dpr,
+    vx: (Math.random() - 0.5) * 1.2 * dpr,
+    rot: Math.random() * Math.PI,
+    vr: (Math.random() - 0.5) * 0.15,
+    shape: Math.random() > 0.5 ? 'rect' : 'circle'
+  }));
+
+  let frames = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts) {
+      p.y += p.vy;
+      p.x += p.vx;
+      p.rot += p.vr;
+      if (p.y > H + 20) { p.y = -20; p.x = Math.random() * W; }
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.c;
+      if (p.shape === 'rect') {
+        ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 0.6);
       } else {
-        wishlist.push({ pid: current.id, name: current.name, model: model, image: current.image });
-        toast('已加入心愿单 ♡');
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r / 2, 0, Math.PI * 2);
+        ctx.fill();
       }
-      renderGrid(); renderWishBar(); closeModal();
+      ctx.restore();
     }
-
-    function renderWishBar() {
-      els.wishBar.hidden = wishlist.length === 0;
-      els.wishCount.textContent = String(wishlist.length);
-      els.submitBtn.disabled = wishlist.length === 0;
-      els.wishTags.innerHTML = wishlist.map(function (w, i) {
-        return '<span class="wish-tag"><b>' + (i + 1) + '</b> ' + escapeHtml(w.name) + ' · ' + escapeHtml(w.model) +
-          '<button class="tag-x" data-idx="' + i + '" aria-label="移除">✕</button></span>';
-      }).join('');
-      els.wishTags.querySelectorAll('.tag-x').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-          e.stopPropagation();
-          wishlist.splice(Number(btn.dataset.idx), 1);
-          renderGrid(); renderWishBar();
-        });
-      });
-    }
-
-    function openConfirm() {
-      els.confirmCount.textContent = String(wishlist.length);
-      els.confirmList.innerHTML = wishlist.map(function (w) {
-        return '<li><img class="thumb" src="' + escapeHtml(w.image) + '" alt="">' +
-          '<div class="li-info"><div class="li-name">' + escapeHtml(w.name) + '</div>' +
-          '<div class="li-model">型号：' + escapeHtml(w.model) + '</div></div></li>';
-      }).join('');
-      els.confirmMask.classList.add('open');
-    }
-    function closeConfirm() { els.confirmMask.classList.remove('open'); }
-
-    function composeText() {
-      var lines = wishlist.map(function (w, i) {
-        return (i + 1) + '. ' + w.name + '（型号：' + w.model + '）—— ￥0.00元';
-      }).join('\n');
-      return '我的七夕心愿清单（' + wishlist.length + ' 件）：\n\n' + lines + '\n\n—— 由橘朵七夕心愿页生成 ♡';
-    }
-
-    function sendWish() {
-      var subject = '七夕心愿清单（' + wishlist.length + '件）';
-      var body = composeText();
-      if (WEB3FORMS_KEY) {
-        fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ access_key: WEB3FORMS_KEY, subject: subject, from_name: '七夕心愿页', email: EMAIL, message: body })
-        })
-          .then(function (r) { return r.json(); })
-          .then(function (res) {
-            if (res.success) toast('心愿已送达，谢谢你 ♡');
-            else { fallbackMail(subject, body); toast('已为你打开邮件，点发送即可 ♡'); }
-          })
-          .catch(function () { fallbackMail(subject, body); toast('网络异常，已为你打开邮件 ♡'); });
-        closeConfirm(); return;
-      }
-      fallbackMail(subject, body);
-      closeConfirm(); toast('心愿已送达，谢谢你 ♡');
-    }
-    function fallbackMail(subject, body) {
-      try {
-        window.location.href = 'mailto:' + EMAIL + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-      } catch (e) {}
-    }
-
-    function on(el, ev, fn) { if (el) el.addEventListener(ev, fn); }
-    on(els.searchInput, 'input', function () { keyword = els.searchInput.value.trim().toLowerCase(); renderGrid(); });
-    on(els.modalClose, 'click', closeModal);
-    on(els.modalMask, 'click', function (e) { if (e.target === els.modalMask) closeModal(); });
-    on(els.addBtn, 'click', addCurrent);
-    on(els.confirmClose, 'click', closeConfirm);
-    on(els.confirmMask, 'click', function (e) { if (e.target === els.confirmMask) closeConfirm(); });
-    on(els.sendBtn, 'click', sendWish);
-    on(els.submitBtn, 'click', openConfirm);
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeConfirm(); } });
-
-    fetch('products.json', { cache: 'no-store' })
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (data) {
-        products = data;
-        renderChips(); renderGrid(); renderWishBar();
-      })
-      .catch(function (err) {
-        els.grid.innerHTML = '<div class="empty">商品数据加载失败，请检查 products.json 是否存在。</div>';
-        console.error(err);
-      });
+    frames++;
+    confettiRAF = requestAnimationFrame(draw);
   }
+  if (confettiRAF) cancelAnimationFrame(confettiRAF);
+  draw();
 
-  /* ============ 启动 ============ */
+  // 自动停止以省电（动画本身无限循环视觉足够）
+  setTimeout(() => { if (confettiRAF) { cancelAnimationFrame(confettiRAF); confettiRAF = null; } }, 12000);
+}
+
+/* ============================================================
+   事件绑定
+   ============================================================ */
+function initGift() {
+  on($('#searchInput'), 'input', renderGrid);
+
+  on($('#modalClose'), 'click', closeModal);
+  on($('#modalMask'), 'click', (e) => { if (e.target === $('#modalMask')) closeModal(); });
+  on($('#addBtn'), 'click', addToWish);
+
+  on($('#confirmClose'), 'click', closeConfirm);
+  on($('#confirmMask'), 'click', (e) => { if (e.target === $('#confirmMask')) closeConfirm(); });
+  on($('#sendBtn'), 'click', sendWish);
+
+  on($('#submitBtn'), 'click', openConfirm);
+  on($('#successClose'), 'click', closeSuccess);
+
+  // 自动全屏：首次交互
+  const kickFS = () => { requestFS(); document.removeEventListener('click', kickFS); document.removeEventListener('keydown', kickFS); };
+  document.addEventListener('click', kickFS);
+  document.addEventListener('keydown', kickFS);
+}
+
+/* ============================================================
+   启动
+   ============================================================ */
+function init() {
   initIntro();
-})();
+  initGift();
+  loadProducts().then(syncWishUI);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
