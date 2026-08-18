@@ -30,11 +30,24 @@ function showScreen(node) {
   if (node) node.classList.add('active');
 }
 
+let enterPending = false;       // 是否已有“进入挑选页”等待中的请求
 function enterGift() {
-  $('#introStage').classList.add('done');
-  const g = $('#giftStage');
-  g.hidden = false;
-  requestFS();
+  enterPending = true;
+  const doEnter = () => {
+    enterPending = false;
+    $('#introStage').classList.add('done');
+    const g = $('#giftStage');
+    g.hidden = false;
+    requestFS();
+  };
+  // 图片还没加载完：保持加载进度条，加载好后才进入挑选页
+  if (imagesReady) { hideLoading(); doEnter(); return; }
+  const shownAt = Date.now();
+  showLoading();
+  whenImagesReady(() => {
+    const wait = Math.max(0, 600 - (Date.now() - shownAt)); // 至少显示 0.6s，避免闪屏
+    setTimeout(() => { hideLoading(); doEnter(); }, wait);
+  });
 }
 
 /* ============================================================
@@ -167,6 +180,11 @@ function makeFlee(btn) {
    ============================================================ */
 let PRODUCTS = [];
 let CATEGORIES = [];
+let imagesReady = false;        // 商品图片是否已全部预加载完成
+let imageWaiters = [];          // 等待图片加载完成后再执行的回调
+function whenImagesReady(fn) {
+  if (imagesReady) { fn(); } else { imageWaiters.push(fn); }
+}
 const wishMap = new Map();      // id -> { product, model, price }
 let current = null;             // 当前打开详情的商品
 let allModels = [];
@@ -188,6 +206,63 @@ async function loadProducts() {
   CATEGORIES = ['全部', ...Array.from(new Set(PRODUCTS.map(p => p.category || '其他').filter(Boolean)))];
   renderChips();
   renderGrid();
+  await preloadImages(); // 进入挑选页前把商品图全部预加载完成
+}
+
+/* ---------- 图片预加载 + 加载进度条 ---------- */
+function setLoadProgress(ratio) {
+  const fill = $('#loadingFill');
+  const pct = $('#loadingPercent');
+  const v = Math.max(0, Math.min(1, ratio));
+  if (fill) fill.style.width = (v * 100).toFixed(0) + '%';
+  if (pct) pct.textContent = (v * 100).toFixed(0);
+}
+
+function preloadImages() {
+  const urls = [];
+  const seen = new Set();
+  const push = (u) => { if (u && !seen.has(u)) { seen.add(u); urls.push(u); } };
+  PRODUCTS.forEach(p => push(imgSrc(p)));
+  push('images/placeholder.png');          // 兜底占位图
+  push('images/pigs/pig-courier.png');     // 成功页小猪
+  const total = urls.length;
+  if (!total) { setLoadProgress(1); return Promise.resolve(); }
+  return new Promise(resolve => {
+    let done = 0;
+    let settled = false;
+    const tick = () => {
+      done++;
+      setLoadProgress(done / total);
+      if (done >= total && !settled) { settled = true; resolve(); }
+    };
+    urls.forEach(u => {
+      const img = new Image();
+      img.onload = tick;
+      img.onerror = tick; // 加载失败也算完成，避免进度卡死
+      img.src = u;
+    });
+  });
+}
+
+function showLoading() {
+  const stage = $('#loadingStage');
+  if (!stage) return;
+  stage.hidden = false;
+  stage.classList.remove('fading');
+}
+
+function hideLoading() {
+  const stage = $('#loadingStage');
+  if (!stage || stage.hidden) return;
+  stage.classList.add('fading');
+  setTimeout(() => { stage.hidden = true; }, 520);
+}
+
+function finishLoading() {
+  imagesReady = true;
+  imageWaiters.splice(0).forEach(fn => { try { fn(); } catch (_) {} });
+  // 没有正在等待进入挑选页的动作时，直接收起加载页
+  if (!enterPending) hideLoading();
 }
 
 function renderChips() {
@@ -595,7 +670,16 @@ function initGift() {
 function init() {
   initIntro();
   initGift();
-  loadProducts().then(syncWishUI);
+  // 从打开页面起就显示加载进度条并预加载商品图片
+  const t0 = Date.now();
+  showLoading();
+  loadProducts()
+    .then(syncWishUI)
+    .then(() => {
+      // 至少展示 0.8s，避免本地缓存瞬间加载完导致进度条一闪而过
+      const minWait = Math.max(0, 800 - (Date.now() - t0));
+      setTimeout(finishLoading, minWait);
+    });
 }
 
 if (document.readyState === 'loading') {

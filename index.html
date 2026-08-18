@@ -7,16 +7,60 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- 小猪 SVG 定义 -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="pig-full" viewBox="0 0 120 120">
+        <ellipse cx="60" cy="74" rx="34" ry="26" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2"/>
+        <circle cx="60" cy="46" r="26" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2"/>
+        <ellipse cx="44" cy="26" rx="9" ry="14" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2" transform="rotate(-25 44 26)"/>
+        <ellipse cx="76" cy="26" rx="9" ry="14" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2" transform="rotate(25 76 26)"/>
+        <circle cx="51" cy="44" r="3.2" fill="#5a3a42"/>
+        <circle cx="69" cy="44" r="3.2" fill="#5a3a42"/>
+        <circle cx="46" cy="54" r="5" fill="#ff9bb3" opacity=".55"/>
+        <circle cx="74" cy="54" r="5" fill="#ff9bb3" opacity=".55"/>
+        <ellipse cx="60" cy="52" rx="11" ry="8" fill="#ff9bb3" stroke="#ef8aa0" stroke-width="1.5"/>
+        <circle cx="56" cy="52" r="1.6" fill="#ef8aa0"/>
+        <circle cx="64" cy="52" r="1.6" fill="#ef8aa0"/>
+        <rect x="44" y="92" width="9" height="16" rx="4" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2"/>
+        <rect x="67" y="92" width="9" height="16" rx="4" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2"/>
+        <path d="M94 70 q14 -6 8 -18 q-4 -8 8 -10" fill="none" stroke="#ef8aa0" stroke-width="3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="pig-face" viewBox="0 0 120 120">
+        <circle cx="60" cy="64" r="40" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2"/>
+        <ellipse cx="38" cy="32" rx="12" ry="18" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2" transform="rotate(-25 38 32)"/>
+        <ellipse cx="82" cy="32" rx="12" ry="18" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2" transform="rotate(25 82 32)"/>
+        <circle cx="48" cy="62" r="4" fill="#5a3a42"/>
+        <circle cx="72" cy="62" r="4" fill="#5a3a42"/>
+        <circle cx="40" cy="74" r="7" fill="#ff9bb3" opacity=".55"/>
+        <circle cx="80" cy="74" r="7" fill="#ff9bb3" opacity=".55"/>
+        <ellipse cx="60" cy="72" rx="15" ry="11" fill="#ff9bb3" stroke="#ef8aa0" stroke-width="1.5"/>
+        <circle cx="54" cy="72" r="2" fill="#ef8aa0"/>
+        <circle cx="66" cy="72" r="2" fill="#ef8aa0"/>
+      </symbol>
+      <symbol id="pig-ear" viewBox="0 0 60 60">
+        <ellipse cx="30" cy="30" rx="14" ry="22" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2" transform="rotate(-20 30 30)"/>
+        <ellipse cx="30" cy="30" rx="7" ry="13" fill="#ff9bb3" opacity=".6" transform="rotate(-20 30 30)"/>
+      </symbol>
+      <symbol id="pig-tail" viewBox="0 0 60 60">
+        <path d="M10 44 C 42 44, 52 20, 32 16 C 18 13, 22 32, 38 30" fill="none" stroke="#ef8aa0" stroke-width="5" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="pig-foot" viewBox="0 0 50 50">
+        <path d="M14 10 q11 -6 22 0 l-3 30 q-8 6 -16 0 z" fill="#ffc6d3" stroke="#ef8aa0" stroke-width="2"/>
+        <path d="M25 12 v26" fill="none" stroke="#ef8aa0" stroke-width="1.5"/>
+      </symbol>
+    </defs>
+  </svg>
+
   <!-- 小猪装饰层（全局） -->
   <div class="pig-decor" aria-hidden="true">
-    <img class="pig pig-1" src="images/pigs/pig-full.png" alt="">
-    <img class="pig pig-2" src="images/pigs/pig-courier.png" alt="">
-    <img class="pig pig-3" src="images/pigs/pig-face.png" alt="">
-    <img class="pig-ear pig-ear-1" src="images/pigs/pig-ear.png" alt="">
-    <img class="pig-ear pig-ear-2" src="images/pigs/pig-ear.png" alt="">
-    <img class="pig-tail pig-tail-1" src="images/pigs/pig-tail.png" alt="">
-    <img class="pig-foot pig-foot-1" src="images/pigs/pig-foot.png" alt="">
-    <img class="pig-foot pig-foot-2" src="images/pigs/pig-foot.png" alt="">
+    <svg class="pig pig-1"><use href="#pig-full"/></svg>
+    <svg class="pig pig-2"><use href="#pig-full"/></svg>
+    <svg class="pig-ear pig-ear-1"><use href="#pig-ear"/></svg>
+    <svg class="pig-ear pig-ear-2"><use href="#pig-ear"/></svg>
+    <svg class="pig-tail pig-tail-1"><use href="#pig-tail"/></svg>
+    <svg class="pig-foot pig-foot-1"><use href="#pig-foot"/></svg>
+    <svg class="pig-foot pig-foot-2"><use href="#pig-foot"/></svg>
   </div>
 
   <!-- ============ 前置互动舞台 ============ -->
@@ -33,17 +77,20 @@
 
     <!-- 第二屏：答错/天数 -->
     <div class="screen screen-days" id="screenDays">
-      <h1 class="intro-q">答错了！</h1>
-      <p class="intro-line">明明是在一起的第 天</p>
-      <div class="days-wrap">
-        <div class="day-slots" id="daySlots">
-          <div class="day-slot" data-idx="0"></div>
-          <div class="day-slot" data-idx="1"></div>
-          <div class="day-slot" data-idx="2"></div>
+      <h1 class="intro-q day-q">答错了！</h1>
+      <p class="intro-line day-reveal">明明是在一起的第</p>
+      <div class="days-wrap day-reveal">
+        <div class="day-row">
+          <div class="day-slots" id="daySlots">
+            <div class="day-slot" data-idx="0"></div>
+            <div class="day-slot" data-idx="1"></div>
+            <div class="day-slot" data-idx="2"></div>
+          </div>
+          <span class="day-unit">天</span>
         </div>
         <div class="days-numpad" id="daysNumpad"></div>
       </div>
-      <button class="intro-btn intro-btn-go" id="daysConfirm" disabled>确认</button>
+      <button class="intro-btn intro-btn-go day-reveal" id="daysConfirm" disabled>确认</button>
     </div>
 
     <!-- 第三屏：奖励 -->
@@ -56,6 +103,19 @@
       </div>
     </div>
   </section>
+
+  <!-- 加载进度条（进入挑选页前拦截） -->
+  <div class="loading-stage" id="loadingStage" hidden>
+    <div class="loading-box">
+      <svg class="loading-pig" viewBox="0 0 120 120" aria-hidden="true">
+        <use href="#pig-full"/>
+      </svg>
+      <h1 class="loading-title">正在搬运心愿礼…</h1>
+      <p class="loading-sub">猪猪快递正在打包中，马上就好</p>
+      <div class="loading-track"><div class="loading-fill" id="loadingFill"></div></div>
+      <p class="loading-percent">已加载 <span id="loadingPercent">0</span>%</p>
+    </div>
+  </div>
 
   <!-- ============ 礼物挑选舞台 ============ -->
   <section class="stage gift-stage" id="giftStage" hidden>

@@ -305,8 +305,9 @@ body {
   border-radius: 24px;
   max-width: 420px;
   width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
   position: relative;
   box-shadow: 0 24px 60px rgba(74, 43, 51, .25);
   animation: popIn .25s ease;
@@ -323,19 +324,19 @@ body {
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: rgba(74, 43, 51, .12);
+  background: rgba(255, 255, 255, .85);
   color: var(--ink);
   font-size: 15px;
   cursor: pointer;
-  z-index: 2;
+  z-index: 3;
   transition: background .2s;
 }
-.modal-close:hover { background: rgba(74, 43, 51, .22); }
+.modal-close:hover { background: rgba(74, 43, 51, .15); }
 
-.modal-image-wrap { aspect-ratio: 1 / 1; background: #faf3f1; }
-.modal-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+.modal-image-wrap { height: 220px; flex: 0 0 auto; background: #faf3f1; overflow: hidden; }
+.modal-image { width: 100%; height: 100%; object-fit: contain; background: #faf3f1; display: block; }
 
-.modal-body { padding: 22px 24px 26px; display: flex; flex-direction: column; gap: 12px; }
+.modal-body { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
 .modal-body h2 { font-size: 20px; line-height: 1.4; }
 .modal-price { font-size: 26px; font-weight: 800; color: var(--rose-deep); }
 .modal-price small { font-size: 15px; }
@@ -542,32 +543,33 @@ body {
   .modal-body { padding: 18px 20px 22px; }
 }
 
-/* ============ 小猪装饰（PNG，透明背景） ============ */
+/* ============ 小猪装饰（内联 SVG，无背景） ============ */
 .pig-decor { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.pig-decor img { position: absolute; user-select: none; image-rendering: auto; }
+.pig-decor svg { position: absolute; user-select: none; overflow: visible; }
 .pig {
-  width: 118px;
-  opacity: .8;
+  width: 116px;
+  height: 116px;
+  opacity: .82;
   filter: drop-shadow(0 6px 12px rgba(217, 79, 111, .1));
 }
-/* 整只小猪：左下、右下各一只，营造角落点缀 */
-.pig-1 { bottom: 6%; left: 2.5%; transform: rotate(-8deg); }
-.pig-2 { bottom: 9%; right: 2.5%; width: 104px; transform: rotate(7deg); opacity: .75; }
+/* 两只整猪分别落在左下、右下角 */
+.pig-1 { bottom: 4%; left: 2%; transform: rotate(-8deg); }
+.pig-2 { bottom: 6%; right: 2%; transform: rotate(7deg); opacity: .75; }
 /* 耳朵：只放在左右上角 */
-.pig-ear { width: 56px; top: 4%; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
-.pig-ear-1 { left: 4%; transform: rotate(-22deg); }
-.pig-ear-2 { right: 4%; transform: rotate(22deg) scaleX(-1); }
+.pig-ear { width: 54px; height: 54px; top: 3.5%; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
+.pig-ear-1 { left: 3.5%; transform: rotate(-22deg); }
+.pig-ear-2 { right: 3.5%; transform: rotate(22deg) scaleX(-1); }
 /* 尾巴：右侧中部 */
-.pig-tail { width: 46px; top: 40%; right: 3%; transform: rotate(35deg); opacity: .7; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
-/* 猪蹄：左下、右上点缀 */
-.pig-foot { width: 40px; opacity: .7; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
-.pig-foot-1 { bottom: 30%; left: 6%; transform: rotate(-12deg); }
-.pig-foot-2 { top: 26%; right: 10%; transform: rotate(20deg); width: 32px; opacity: .6; }
+.pig-tail { width: 44px; height: 44px; top: 42%; right: 2.5%; transform: rotate(35deg); opacity: .72; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
+/* 猪蹄：左下、右上对称点缀 */
+.pig-foot { width: 38px; height: 38px; opacity: .7; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
+.pig-foot-1 { bottom: 26%; left: 6%; transform: rotate(-12deg); }
+.pig-foot-2 { top: 24%; right: 11%; transform: rotate(20deg); width: 30px; height: 30px; opacity: .6; }
 @media (max-width: 720px) {
-  .pig-decor img { opacity: .45; }
+  .pig-decor svg { opacity: .4; }
   .pig-2, .pig-tail, .pig-foot-2 { display: none; }
-  .pig-1 { width: 92px; }
-  .pig-ear { width: 46px; }
+  .pig-1 { width: 88px; height: 88px; }
+  .pig-ear { width: 44px; height: 44px; }
 }
 
 /* ============ 前置互动舞台 ============ */
@@ -611,7 +613,13 @@ body {
   align-items: center;
   gap: 18px;
   width: 100%;
-  max-width: 320px;
+  max-width: 340px;
+}
+.day-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 .day-slots {
   display: flex;
@@ -619,8 +627,8 @@ body {
   justify-content: center;
 }
 .day-slot {
-  width: 66px;
-  height: 78px;
+  width: 64px;
+  height: 76px;
   border-radius: 18px;
   border: 2px solid var(--rose);
   background: #fff;
@@ -638,7 +646,31 @@ body {
   border-color: var(--rose-deep);
   transform: scale(1.05);
 }
+.day-unit {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--rose-deep);
+  margin-left: 2px;
+}
 .days-numpad { width: 100%; }
+
+/* 天数屏动画：先单独上浮“答错了！”，再出现输入框与键盘 */
+#screenDays.active .day-q {
+  animation: qFloat .7s cubic-bezier(.2, .8, .2, 1) both;
+}
+#screenDays.active .day-reveal {
+  opacity: 0;
+  animation: revealUp .6s ease .55s both;
+}
+@keyframes qFloat {
+  0% { opacity: 0; transform: translateY(0) scale(.85); }
+  55% { opacity: 1; transform: translateY(-22px) scale(1); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .numpad-key {
   font-size: 22px; font-weight: 700; color: var(--rose-deep);
@@ -668,6 +700,74 @@ body {
 
 /* 让逃跑按钮在 fixed 下也不被遮挡 */
 .intro-btn-flee { z-index: 60; }
+
+/* ============ 加载进度条（进入挑选页前） ============ */
+.loading-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255, 209, 221, .55) 0%, transparent 40%),
+    radial-gradient(circle at 80% 25%, rgba(247, 236, 215, .6) 0%, transparent 38%),
+    linear-gradient(180deg, #fff5f7 0%, #fff0f3 100%);
+  animation: loadingIn .3s ease;
+}
+.loading-stage[hidden] { display: none; }
+.loading-stage.fading {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .5s ease, visibility .5s ease;
+}
+@keyframes loadingIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.loading-box { max-width: 340px; width: 100%; }
+.loading-pig {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 18px;
+  animation: pigBounce 2.2s ease-in-out infinite;
+  filter: drop-shadow(0 10px 20px rgba(217, 79, 111, .2));
+}
+.loading-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--rose-deep);
+  margin-bottom: 6px;
+}
+.loading-sub {
+  font-size: 14px;
+  color: var(--ink-light);
+  margin-bottom: 22px;
+}
+.loading-track {
+  height: 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #f2dfe5;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(217, 79, 111, .08);
+}
+.loading-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--rose), #e87391, var(--gold));
+  transition: width .3s ease;
+}
+.loading-percent {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rose-deep);
+  margin-top: 12px;
+}
 
 /* ============ 提交成功全屏页 ============ */
 .success-stage {
