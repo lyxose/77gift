@@ -449,20 +449,66 @@ function showSuccess() {
   stage.hidden = false;
   requestAnimationFrame(() => stage.classList.add('open'));
   requestFS();
-  startConfetti();
+  startConfetti('confettiCanvas');
 }
 
-function closeSuccess() {
-  const stage = $('#successStage');
-  stage.classList.remove('open');
-  setTimeout(() => { stage.hidden = true; }, 400);
-  location.reload();
+/* ---------- 成功页：不满意 / 满意 按钮 ---------- */
+function bindSuccessButtons() {
+  const noBtn = $('#successNo');
+  const yesBtn = $('#successYes');
+  if (!noBtn || !yesBtn) return;
+
+  // 鼠标/手指移到“不满意” -> “满意”按钮滑过来挡住
+  const block = () => {
+    const a = noBtn.getBoundingClientRect();
+    const b = yesBtn.getBoundingClientRect();
+    const dx = (a.left + a.width / 2) - (b.left + b.width / 2);
+    const dy = (a.top + a.height / 2) - (b.top + b.height / 2);
+    yesBtn.classList.add('blocking');
+    yesBtn.style.transform = `translate(${dx}px, ${dy}px) scale(1.12)`;
+  };
+  const unblock = () => {
+    yesBtn.classList.remove('blocking');
+    yesBtn.style.transform = '';
+  };
+  on(noBtn, 'mouseenter', block);
+  on(noBtn, 'mouseleave', unblock);
+  on(noBtn, 'touchstart', (e) => { e.preventDefault(); block(); }, { passive: false });
+
+  const pick = (btn) => {
+    btn.classList.add('picked');
+    setTimeout(goToEnd, 500);
+  };
+  on(noBtn, 'click', () => pick(noBtn));
+  on(yesBtn, 'click', () => pick(yesBtn));
+}
+
+function goToEnd() {
+  const success = $('#successStage');
+  const end = $('#endStage');
+  if (success) {
+    success.classList.remove('open');
+    setTimeout(() => { success.hidden = true; }, 400);
+  }
+  if (end) {
+    end.hidden = false;
+    requestAnimationFrame(() => end.classList.add('open'));
+  }
+  exitFS();
+  startConfetti('endConfetti');
+}
+
+function exitFS() {
+  try {
+    const fn = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if (fn) (fn.call(document) || Promise.resolve()).catch(() => {});
+  } catch (_) {}
 }
 
 /* ---------- 彩带飘落动效 ---------- */
 let confettiRAF = null;
-function startConfetti() {
-  const canvas = $('#confettiCanvas');
+function startConfetti(canvasId) {
+  const canvas = document.getElementById(canvasId || 'confettiCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
@@ -512,13 +558,12 @@ function startConfetti() {
       ctx.restore();
     }
     frames++;
-    confettiRAF = requestAnimationFrame(draw);
+    requestAnimationFrame(draw);
   }
-  if (confettiRAF) cancelAnimationFrame(confettiRAF);
   draw();
 
   // 自动停止以省电（动画本身无限循环视觉足够）
-  setTimeout(() => { if (confettiRAF) { cancelAnimationFrame(confettiRAF); confettiRAF = null; } }, 12000);
+  setTimeout(() => { /* 自然停止由页面切换处理 */ }, 12000);
 }
 
 /* ============================================================
@@ -536,7 +581,7 @@ function initGift() {
   on($('#sendBtn'), 'click', sendWish);
 
   on($('#submitBtn'), 'click', openConfirm);
-  on($('#successClose'), 'click', closeSuccess);
+  bindSuccessButtons();
 
   // 自动全屏：首次交互
   const kickFS = () => { requestFS(); document.removeEventListener('click', kickFS); document.removeEventListener('keydown', kickFS); };
