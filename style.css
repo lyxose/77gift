@@ -95,7 +95,7 @@ body {
 .catalog {
   max-width: 1160px;
   margin: 0 auto;
-  padding: 8px 20px 150px;
+  padding: 8px 20px 200px;
 }
 
 .toolbar {
@@ -432,7 +432,10 @@ body {
   box-shadow: 0 -10px 30px rgba(217, 79, 111, .1);
   padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
   animation: slideUp .3s ease;
+  pointer-events: none; /* 空白/内边距区域不拦截点击，卡片可正常点击 */
 }
+.wish-bar-inner { pointer-events: none; }
+.wish-count, .wish-tags, .wish-tag, .tag-x, .btn-submit { pointer-events: auto; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
 
 .wish-bar-inner {
@@ -471,6 +474,13 @@ body {
   padding: 6px 8px 6px 14px;
   font-size: 12px;
   white-space: nowrap;
+  flex-shrink: 0;
+}
+.wish-tag .thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
   flex-shrink: 0;
 }
 .wish-tag .tag-x {

@@ -186,6 +186,7 @@ const wishMap = new Map();      // id -> { product, model, price }
 let current = null;             // 当前打开详情的商品
 let allModels = [];
 let modelIndex = 0;
+let modalGuardUntil = 0;        // 弹窗刚关闭后的一小段时间，忽略卡片点击，防止“幽灵点击”重新打开弹窗
 
 function fmtPrice(p) {
   const n = Number(p);
@@ -345,11 +346,16 @@ function renderGrid() {
         </div>
       </div>`;
     on(card, 'click', (e) => {
+      if (Date.now() < modalGuardUntil) return; // 弹窗刚关闭：忽略幽灵点击
       if (e.target.closest('.card-heart')) return;
       openDetail(p);
     });
     const heart = $('.card-heart', card);
-    on(heart, 'click', (e) => { e.stopPropagation(); toggleWish(p); });
+    on(heart, 'click', (e) => {
+      e.stopPropagation();
+      if (Date.now() < modalGuardUntil) return; // 弹窗刚关闭：忽略幽灵点击
+      toggleWish(p);
+    });
     grid.appendChild(card);
   });
 }
@@ -412,7 +418,9 @@ function closeModal() {
   const mask = $('#modalMask');
   if (!mask) return;
   mask.classList.remove('open');
-  setTimeout(() => { mask.hidden = true; }, 200);
+  mask.hidden = true;                      // 立即隐藏，避免延迟定时器与下次打开竞态
+  // 移动端「选型号→加入」后常有延迟/幽灵点击落到卡片上，护栏期内忽略卡片点击
+  modalGuardUntil = Date.now() + 500;
 }
 
 function addToWish() {
