@@ -192,7 +192,11 @@ let modelIndex = 0;
 
 function fmtPrice(p) {
   const n = Number(p);
-  return isNaN(n) ? (p || '0') : n.toFixed(2);
+  if (!isNaN(n)) return n.toFixed(2);
+  // 兼容 products.json 里「￥0.00元」这种字符串，只保留数字
+  const cleaned = String(p || '0').replace(/[￥¥,元\s]/g, '');
+  const n2 = Number(cleaned);
+  return !isNaN(n2) ? n2.toFixed(2) : '0.00';
 }
 
 async function loadProducts() {
@@ -308,6 +312,15 @@ function imgSrc(p) {
   return 'images/placeholder.png';
 }
 
+// 取商品的型号列表：兼容 models / options 两种字段（支持数组或换行分隔的字符串）
+function getModels(p) {
+  if (!p) return null;
+  let m = p.models || p.options;
+  if (!m) return null;
+  if (typeof m === 'string') m = m.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  return Array.isArray(m) && m.length ? m : null;
+}
+
 function renderGrid() {
   const grid = $('#productGrid');
   const emptyTip = $('#emptyTip');
@@ -350,7 +363,7 @@ function toggleWish(p) {
   if (wishMap.has(id)) {
     wishMap.delete(id);
   } else {
-    const models = (p.models && p.models.length) ? p.models : null;
+    const models = getModels(p);
     if (models) {
       openDetail(p);
       return;
@@ -372,16 +385,20 @@ function openDetail(p) {
 
   const sel = $('#modelSelect');
   sel.innerHTML = '';
-  const models = (p.models && p.models.length) ? p.models : null;
+  const label = sel.previousElementSibling; // 「选择型号」标签
+  const models = getModels(p);
   if (models) {
-    sel.parentElement.style.display = '';
+    label.hidden = false;
+    sel.hidden = false;
     models.forEach(m => {
       const o = document.createElement('option');
       o.value = m; o.textContent = m;
       sel.appendChild(o);
     });
   } else {
-    sel.parentElement.style.display = 'none';
+    // 只隐藏「选择型号」标签和下拉框，名称/价格/加入按钮仍正常显示
+    label.hidden = true;
+    sel.hidden = true;
   }
   updateModalCount();
   mask.hidden = false;
@@ -404,7 +421,7 @@ function closeModal() {
 
 function addToWish() {
   if (!current) return;
-  const model = current.models && current.models.length ? $('#modelSelect').value : '';
+  const model = getModels(current) ? $('#modelSelect').value : '';
   wishMap.set(current.id, { product: current, model, price: current.price });
   updateModalCount();
   syncWishUI();

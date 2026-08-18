@@ -374,6 +374,10 @@ body {
 .modal-tip { font-size: 12px; color: var(--ink-light); text-align: center; }
 .modal-tip span { color: var(--rose-deep); font-weight: 700; }
 
+@media (max-width: 640px) {
+  .modal-image-wrap { height: 180px; }
+}
+
 /* 确认弹窗 */
 .modal-confirm { max-width: 440px; padding: 30px 26px 24px; }
 .confirm-title { font-size: 22px; text-align: center; }
