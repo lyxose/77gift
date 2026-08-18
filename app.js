@@ -30,11 +30,8 @@ function showScreen(node) {
   if (node) node.classList.add('active');
 }
 
-let enterPending = false;       // 是否已有“进入挑选页”等待中的请求
 function enterGift() {
-  enterPending = true;
   const doEnter = () => {
-    enterPending = false;
     $('#introStage').classList.add('done');
     const g = $('#giftStage');
     g.hidden = false;
@@ -264,9 +261,8 @@ function hideLoading() {
 
 function finishLoading() {
   imagesReady = true;
+  // 触发等待进入挑选页的回调（由 enterGift 负责收起加载页并进入）
   imageWaiters.splice(0).forEach(fn => { try { fn(); } catch (_) {} });
-  // 没有正在等待进入挑选页的动作时，直接收起加载页
-  if (!enterPending) hideLoading();
 }
 
 function renderChips() {
@@ -687,16 +683,10 @@ function initGift() {
 function init() {
   initIntro();
   initGift();
-  // 从打开页面起就显示加载进度条并预加载商品图片
-  const t0 = Date.now();
-  showLoading();
+  // 打开页面即静默预加载商品图片（不显示加载页，前几页播放时在后台加载）
   loadProducts()
     .then(syncWishUI)
-    .then(() => {
-      // 至少展示 0.8s，避免本地缓存瞬间加载完导致进度条一闪而过
-      const minWait = Math.max(0, 800 - (Date.now() - t0));
-      setTimeout(finishLoading, minWait);
-    });
+    .then(finishLoading);
 }
 
 if (document.readyState === 'loading') {
