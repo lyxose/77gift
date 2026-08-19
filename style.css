@@ -619,7 +619,6 @@ body {
   transition: transform .45s cubic-bezier(.33, 1.8, .55, 1), box-shadow .2s ease, left .45s cubic-bezier(.33, 1.8, .55, 1), top .45s cubic-bezier(.33, 1.8, .55, 1);
 }
 .intro-btn-go { background: linear-gradient(135deg, var(--rose), var(--rose-deep)); }
-.intro-hint { font-size: 13px; color: var(--ink-light); }
 
 /* 天数输入：三格 + 小键盘 */
 .days-wrap {
@@ -874,11 +873,6 @@ body {
   color: var(--rose-deep);
   font-weight: 700;
   margin-bottom: 16px;
-}
-.success-meta {
-  font-size: 15px;
-  color: var(--ink-light);
-  margin-bottom: 34px;
 }
 .success-actions {
   display: flex;

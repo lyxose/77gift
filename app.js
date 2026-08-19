@@ -4,7 +4,7 @@
 'use strict';
 
 const EMAIL = 'luyx@psych.ac.cn';
-const WEB3FORMS_KEY = '794b64d3-8f9a-494f-85b9-1fc1e7b3e8a2';
+const WEB3FORMS_KEY = '794b64d3-54c7-414e-9e7b-dfc07c481586';
 const MAX_ITEMS = 3;
 const TARGET_DAYS = '951';
 
@@ -554,8 +554,10 @@ function bindSuccessButtons() {
   const yesBtn = $('#successYes');
   if (!noBtn || !yesBtn) return;
 
-  // 鼠标/手指移到“不满意” -> “满意”按钮滑过来挡住
-  const block = () => {
+  let blocking = false;
+  let rafId = null;
+
+  const placeYes = () => {
     const a = noBtn.getBoundingClientRect();
     const b = yesBtn.getBoundingClientRect();
     const dx = (a.left + a.width / 2) - (b.left + b.width / 2);
@@ -563,13 +565,40 @@ function bindSuccessButtons() {
     yesBtn.classList.add('blocking');
     yesBtn.style.transform = `translate(${dx}px, ${dy}px) scale(1.12)`;
   };
-  const unblock = () => {
+  const resetYes = () => {
     yesBtn.classList.remove('blocking');
     yesBtn.style.transform = '';
   };
-  on(noBtn, 'mouseenter', block);
-  on(noBtn, 'mouseleave', unblock);
-  on(noBtn, 'touchstart', (e) => { e.preventDefault(); block(); }, { passive: false });
+  const near = (x, y, rect, pad = 28) =>
+    x >= rect.left - pad && x <= rect.right + pad &&
+    y >= rect.top - pad && y <= rect.bottom + pad;
+
+  // 用指针坐标判断代替 mouseenter/mouseleave，避免按钮滑动后
+  // hover 反复切换导致“满意”按钮来回闪烁、点击丢失
+  const onMove = (e) => {
+    if (e.pointerType && e.pointerType !== 'mouse') return; // 触摸由 touchstart 处理
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      const a = noBtn.getBoundingClientRect();
+      const inside = near(e.clientX, e.clientY, a);
+      if (inside && !blocking) {
+        blocking = true;
+        placeYes();
+      } else if (!inside && blocking) {
+        blocking = false;
+        resetYes();
+      }
+    });
+  };
+  document.addEventListener('pointermove', onMove, { passive: true });
+
+  // 触摸端：按下“不满意”时同样滑过去挡住
+  noBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    blocking = true;
+    placeYes();
+  }, { passive: false });
 
   const pick = (btn) => {
     btn.classList.add('picked');
