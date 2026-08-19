@@ -509,7 +509,7 @@ function sendWish() {
     access_key: WEB3FORMS_KEY,
     subject: '七夕心愿清单 ♡',
     from_name: '七夕心愿',
-    to: EMAIL,
+    email: EMAIL,
     message: '收到一份七夕心愿清单：\n' + items.map(lineOf).join('\n')
   };
 
