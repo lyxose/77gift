@@ -570,21 +570,21 @@ body {
 .pig-1 { bottom: 4%; left: 2%; transform: rotate(-8deg); }
 .pig-2 { bottom: 6%; right: 2%; transform: rotate(7deg) scaleX(-1); opacity: .75; }
 /* 耳朵：只放在左右上角 */
-.pig-ear { width: 54px; height: auto; top: 3.5%; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
-.pig-ear-1 { left: 3.5%; transform: rotate(-22deg); }
-.pig-ear-2 { right: 3.5%; transform: rotate(22deg) scaleX(-1); }
-/* 猪头：右侧中部 */
-.pig-face { width: 92px; height: auto; top: 42%; right: 2.5%; transform: rotate(12deg); opacity: .72; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
-/* 猪蹄：左下、右上对称点缀 */
-.pig-foot { width: 42px; height: auto; opacity: .7; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
-.pig-foot-1 { bottom: 26%; left: 6%; transform: rotate(-12deg); }
-.pig-foot-2 { top: 24%; right: 11%; transform: rotate(20deg) scaleX(-1); width: 34px; opacity: .6; }
+.pig-ear { width: 78px; height: auto; top: 3.5%; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
+/* 左耳：原图朝右上，镜像后朝左上 */
+.pig-ear-1 { left: 3.5%; transform: scaleX(-1) rotate(22deg); }
+/* 右耳：原图朝右上，保持 */
+.pig-ear-2 { right: 3.5%; transform: rotate(22deg); }
+/* 猪蹄：左右下角点缀 */
+.pig-foot { width: 60px; height: auto; opacity: .7; filter: drop-shadow(0 4px 8px rgba(217, 79, 111, .08)); }
+.pig-foot-1 { bottom: 4%; left: 6%; transform: rotate(-12deg); }
+.pig-foot-2 { bottom: 4%; right: 6%; transform: rotate(20deg) scaleX(-1); }
 @media (max-width: 720px) {
   .pig-decor img { opacity: .4; }
-  .pig-2, .pig-face, .pig-foot-2 { display: none; }
+  .pig-2, .pig-foot-2 { display: none; }
   .pig-1 { width: 110px; }
-  .pig-ear { width: 44px; }
-  .pig-foot-1 { width: 34px; }
+  .pig-ear { width: 60px; }
+  .pig-foot-1 { width: 46px; }
 }
 
 /* ============ 前置互动舞台 ============ */
